@@ -713,10 +713,11 @@ def reviews_section(slugs=None, *, title='Straight from <span class="serif">Good
     cards = ""
     for i, r in enumerate(mixed):
         b = BOOKS[r["book"]]
+        source_label = r.get("source", "Goodreads")
         cards += f"""<figure class="rv-card t-{b['accent']}">
   <div class="rv-top">{stars_html(r['rating'])}<span class="rv-book">{e(b['title'])}</span></div>
   <blockquote>“{e(r['text'])}”</blockquote>
-  <figcaption><b>{e(r['name'])}</b><span>Goodreads review</span>{out_link(r['source_url'], "Read reviews", "review-source", r['book'], "rv-link")}</figcaption>
+  <figcaption><b>{e(r['name'])}</b><span>{e(source_label)} review</span>{out_link(r['source_url'], "Read reviews", "review-source", r['book'], "rv-link")}</figcaption>
 </figure>"""
     email = SITE.get("contact_email", "")
     pad = "" if top_pad else ' style="padding-top:0"'
