@@ -524,3 +524,37 @@ ul,ol{margin:0}
 .series .res-grid{margin-bottom:8px}
 .page-head .lede{margin:0 0 14px}
 .page-head .lede:last-of-type{margin-bottom:22px}
+
+/* ---------- growth: stars, promo, consent, forms, privacy ---------- */
+.stars{display:inline-block;font-size:16px;line-height:1;letter-spacing:2px;background:linear-gradient(90deg,var(--glow) calc(var(--r) / 5 * 100%),rgba(255,255,255,.22) 0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stars::before{content:"★★★★★"}
+.proof-row .stars{font-size:15px}
+.bk-proof{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.link-sm{font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding-bottom:2px}
+
+.promo{position:relative;z-index:55;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 14px;padding:10px 46px 10px var(--gutter);background:var(--glow);color:var(--on-glow);font:650 14px/1.3 var(--f-body);text-align:center}
+.promo-clock{font-variant-numeric:tabular-nums;font-weight:700}
+.promo-cta{color:var(--on-glow);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.promo-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:transparent;color:var(--on-glow);font-size:22px;line-height:1;cursor:pointer}
+
+.consent{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:80;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;max-width:760px;margin-inline:auto;padding:16px 18px;border-radius:20px;border:1px solid var(--line-2);background:rgba(17,17,21,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.consent p{margin:0;font-size:14.5px;line-height:1.45;flex:1 1 280px;color:rgba(245,242,238,.9)}
+.consent a{color:var(--paper)}
+.consent-actions{display:flex;gap:10px}
+
+.amz-pick{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.amz-pick select{height:40px;padding:0 34px 0 14px;border-radius:99px;border:1px solid var(--line-2);background:rgba(255,255,255,.06);color:var(--paper);font:500 14px var(--f-body);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%23a9a6b0' stroke-width='2'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;max-width:100%}
+.amz-pick select option{background:var(--ink-2);color:var(--paper)}
+
+.req label.check{display:flex;align-items:flex-start;gap:12px;text-transform:none;letter-spacing:0;font:500 15px/1.4 var(--f-body);color:rgba(245,242,238,.9)}
+.req .check input{flex:none;width:22px;height:22px;margin:1px 0 0;accent-color:var(--glow)}
+.check-group{display:grid;gap:12px;border:0;padding:0;margin:0;min-width:0}
+.check-group legend{padding:0;margin-bottom:12px;font:600 13px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.signup.req{gap:14px}
+
+.prose{max-width:720px}
+.prose h2{margin:44px 0 10px;font:800 clamp(24px,5.4vw,32px)/1.1 var(--f-display);letter-spacing:-.03em}
+.prose h2:first-child{margin-top:0}
+.prose p{margin:0 0 14px;color:rgba(245,242,238,.84);line-height:1.7}
+button.link{background:none;border-top:0;border-inline:0;cursor:pointer;font-family:var(--f-body);padding-inline:0}
+.crew-copy .perks{grid-area:auto}

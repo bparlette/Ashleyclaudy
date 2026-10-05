@@ -23,6 +23,7 @@ FAN = json.loads((ROOT / "content/fan.json").read_text())
 QUIZ = json.loads((ROOT / "content/quiz.json").read_text())
 GENRES = json.loads((ROOT / "content/genres.json").read_text())["pages"]
 GENRE_BY_SLUG = {g["slug"]: g for g in GENRES}
+AFTER = json.loads((ROOT / "content/after.json").read_text())
 BOOKS = {b["slug"]: b for b in CATALOG["books"]}
 SERIES = {s["id"]: s for s in CATALOG["series"]}
 
@@ -47,6 +48,9 @@ SHELF = [
 ]
 
 MOODS = dict(SHELF)
+PRIVACY_HREF = "@@R@@privacy.html"
+AMZ_STORES = [("com", "United States"), ("co.uk", "United Kingdom"), ("ca", "Canada"), ("com.au", "Australia"), ("de", "Germany"), ("fr", "France"),
+              ("es", "Spain"), ("it", "Italy"), ("nl", "Netherlands"), ("in", "India"), ("co.jp", "Japan"), ("com.mx", "Mexico"), ("com.br", "Brazil")]
 BOOK_GENRE = {}
 for _g in GENRES:
     if _g["slug"] != "kindle-unlimited-romance":
@@ -92,8 +96,13 @@ def kindle_sample(asin):
     return f"https://read.amazon.com/kp/embed?asin={asin}&preview=newtab&linkCode=kpe"
 
 
-def out_link(url, label, store, book="", cls="link"):
-    return (f'<a class="{cls}" href="{e(url)}" target="_blank" rel="noopener" '
+def asin_attr(url):
+    m = re.match(r"https://www\.amazon\.com/dp/([A-Z0-9]{10})", url)
+    return f' data-asin="{m.group(1)}"' if m else ""
+
+
+def out_link(url, label, store, book="", cls="link", extra=""):
+    return (f'<a class="{cls}" href="{e(url)}" target="_blank" rel="noopener"{asin_attr(url)}{extra} '
             f'data-track="{e(store)}" data-book="{e(book)}">{label}</a>')
 
 
@@ -172,13 +181,13 @@ def analytics():
     if a.get("ga4_id"):
         gid = e(a["ga4_id"])
         parts.append(
-            f'<script async src="https://www.googletagmanager.com/gtag/js?id={gid}"></script>\n'
-            f"<script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','{gid}');</script>"
+            f'<script type="text/plain" data-consent="analytics" src="https://www.googletagmanager.com/gtag/js?id={gid}"></script>\n'
+            f"<script type=\"text/plain\" data-consent=\"analytics\">window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','{gid}');</script>"
         )
     if a.get("meta_pixel_id"):
         pid = e(a["meta_pixel_id"])
         parts.append(
-            "<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?"
+            "<script type=\"text/plain\" data-consent=\"analytics\">!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?"
             "n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;"
             "n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];"
             "s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');"
@@ -201,6 +210,7 @@ def header(r, current=""):
     cta = f'<a class="btn btn-glow btn-sm" href="{r}bonus.html">Free bonus chapters</a>'
     cta_big = f'<a class="btn btn-glow btn-block" href="{r}bonus.html">Free bonus chapters {ARROW}</a>'
     return f"""<a class="skip" href="#main">Skip to content</a>
+{promo_bar()}
 <header class="site-head">
   <div class="wrap head-row">
     <a class="logo" href="{r}index.html" aria-label="Ashley Claudy, home">Ashley Claudy</a>
@@ -239,7 +249,9 @@ def footer(r):
       <a href="{r}bonus.html">Bonus chapters</a>
       <a href="{r}books.html#where-to-buy">Where to buy</a>
       <a href="{r}creators.html">Creators &amp; press</a>
+      <a href="{r}arc.html">ARC team</a>
       <a href="{r}links.html">Links</a>
+      <a href="{r}privacy.html">Privacy</a>
       <a href="{r}index.html#about">About</a>
     </nav>
     <nav class="foot-nav foot-explore" aria-label="Explore">
@@ -248,13 +260,15 @@ def footer(r):
     <div class="fine-col">
       <p class="fine">As an Amazon Associate I earn from qualifying purchases.</p>
       <p class="fine">© {year} Ashley Claudy. All rights reserved.</p>
+      <p class="amz-pick fine"><label for="amz-store">Amazon store</label>
+        <select id="amz-store" data-amz-select>{"".join(f'<option value="{d}">{n} (amazon.{d})</option>' for d, n in AMZ_STORES)}</select></p>
     </div>
   </div>
   <div class="big-mark" aria-hidden="true"><span>Ashley</span><span>Claudy</span></div>
 </footer>"""
 
 
-def crew_form(form_id):
+def crew_form(form_id, book=""):
     nl = SITE["newsletter"]
     action = nl.get("mailerlite_form_action", "")
     return f"""<div class="signup-wrap">
@@ -266,8 +280,14 @@ def crew_form(form_id):
       </div>
       <input type="hidden" name="ml-submit" value="1">
       <input type="hidden" name="anticsrf" value="true">
+      <input type="hidden" name="fields[signup_source]" value="{e(form_id)}">
+      <input type="hidden" name="fields[book]" value="{e(book)}">
+      <input type="hidden" name="fields[quiz_result]" value="">
+      <input type="hidden" name="fields[utm_source]" value="">
+      <input type="hidden" name="fields[utm_medium]" value="">
+      <input type="hidden" name="fields[utm_campaign]" value="">
       <p class="signup-error" role="alert" hidden></p>
-      <p class="signup-note">Free. Unsubscribe anytime. Your email is never shared.</p>
+      <p class="signup-note">Free. Unsubscribe anytime. Your email is never shared. <a href="{PRIVACY_HREF}">Privacy</a></p>
     </form>
     <div class="signup-done" role="status" hidden>
       <p class="done-title">You're on the Crew.</p>
@@ -280,7 +300,7 @@ def crew_form(form_id):
   </div>"""
 
 
-def crew(form_id, headline=None):
+def crew(form_id, headline=None, book=""):
     nl = SITE["newsletter"]
     perks = "".join(f"<li>{e(p)}</li>" for p in nl["perks"])
     headline = headline or 'Get the bonus chapters. <span class="serif">Free.</span>'
@@ -290,7 +310,7 @@ def crew(form_id, headline=None):
     <h2>{headline}</h2>
     <p class="lede">{e(nl["crew_line"])}</p>
   </div>
-  {crew_form(form_id)}
+  {crew_form(form_id, book)}
   <ul class="perks">{perks}</ul>
 </div>"""
 
@@ -308,7 +328,7 @@ def dock_html(dock):
     return f'<div class="dock" role="region" aria-label="Quick actions">{primary}{secondary}</div>'
 
 
-def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, solo=False, current="", theme="blue", dock=None, extra_js=()):
+def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, solo=False, current="", theme="blue", dock=None, extra_js=(), noindex=False):
     r = "/" if path == "404.html" else "../" * path.count("/")
     canonical = abs_url("" if path == "index.html" else path)
     ld = "".join(
@@ -317,6 +337,9 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
     )
     ml_frame = ('<iframe name="ml-frame" title="Newsletter signup" hidden></iframe>'
                 if SITE["newsletter"].get("mailerlite_form_action") else "")
+    robots = '<meta name="robots" content="noindex">\n' if noindex else ""
+    amz_json = json.dumps(amz_config(), separators=(",", ":"))
+    consent_flag = "window.AC_CONSENT=true;" if needs_consent() else ""
     head = f"""<title>{e(title)}</title>
 <meta name="description" content="{e(description)}">
 <link rel="canonical" href="{e(canonical)}">
@@ -339,10 +362,11 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
 <link rel="preload" href="{r}assets/fonts/inter-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{r}assets/css/site.css">
 <script>document.documentElement.classList.add("js")</script>
+{robots}<script>window.AC_AMZ={amz_json};{consent_flag}</script>
 {analytics()}
 {ld}"""
     chrome_top = "" if solo else header(r, current)
-    chrome_bottom = "" if solo else footer(r) + join_modal()
+    chrome_bottom = ("" if solo else footer(r) + join_modal()) + consent_banner()
     dock_markup = dock_html(dock) if dock else ""
     extra_scripts = "\n".join(f'<script src="{r}assets/js/{name}" defer></script>' for name in extra_js)
     body_class = f"t-{theme}" + (" has-dock" if dock else "")
@@ -367,7 +391,7 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
 {content}
 </body>
 </html>
-"""
+""".replace("@@R@@", r)
 
 
 def person_ld():
@@ -423,6 +447,241 @@ def countdown(book, done_id):
 </div>
 <p class="lede" id="{done_id}" hidden>Out now on Kindle.</p>"""
 
+
+
+# ---------- growth: regional Amazon, consent, promo, privacy, reader proof ----------
+
+def amz_config():
+    tags = {k: v for k, v in (SITE.get("amazon_tags") or {}).items() if v}
+    default = SITE.get("amazon_affiliate_tag")
+    if default:
+        tags.setdefault("com", default)
+    tracking = {k.lower(): v for k, v in (SITE.get("amazon_tracking_ids") or {}).items() if v}
+    return {"tags": tags, "tracking": tracking}
+
+
+def needs_consent():
+    a = SITE.get("analytics", {})
+    return bool(a.get("ga4_id") or a.get("meta_pixel_id"))
+
+
+def consent_banner():
+    if not needs_consent():
+        return ""
+    return f"""<div class="consent" data-consent-banner role="region" aria-label="Analytics choice" hidden>
+  <p>May we use analytics cookies to see which pages help readers? Nothing is sold. <a href="{PRIVACY_HREF}">Privacy</a></p>
+  <div class="consent-actions"><button class="btn btn-glow btn-sm" type="button" data-consent="yes">Accept</button><button class="btn btn-line btn-sm" type="button" data-consent="no">Decline</button></div>
+</div>"""
+
+
+def promo_bar():
+    pr = SITE.get("promo") or {}
+    if not pr.get("enabled") or not pr.get("text"):
+        return ""
+    ends = pr.get("ends_iso", "")
+    if ends:
+        try:
+            end_dt = datetime.fromisoformat(ends)
+            if end_dt < datetime.now(end_dt.tzinfo):
+                return ""
+        except ValueError:
+            ends = ""
+    link = (f'<a class="promo-cta" href="{e(pr["url"])}" target="_blank" rel="noopener"{asin_attr(pr["url"])} data-track="promo" data-book="">{e(pr.get("cta", "Get the deal"))}</a>' if pr.get("url") else "")
+    clock = '<span class="promo-clock" data-promo-clock></span>' if ends else ""
+    return (f'<div class="promo" data-promo data-ends="{e(ends)}" role="region" aria-label="Sale"><span class="promo-text">{e(pr["text"])}</span>{clock}{link}'
+            f'<button class="promo-x" type="button" data-promo-close aria-label="Dismiss">×</button></div>')
+
+
+def rating_of(book):
+    m = re.search(r"(\d\.\d+)\s*stars", book.get("proof") or "")
+    return float(m.group(1)) if m else None
+
+
+def stars_html(rating):
+    return f'<span class="stars" style="--r:{rating}" role="img" aria-label="{rating} out of 5 stars"></span>'
+
+
+def featured_slug():
+    forced = (SITE.get("featured_book") or "").strip()
+    if forced in BOOKS:
+        return forced
+    w = wreck()
+    if w["status"] == "out" and w.get("release_iso"):
+        if 0 <= (datetime.now(release_dt(w).tzinfo) - release_dt(w)).days <= 45:
+            return "wreck"
+    return "ride"
+
+
+def mailto_form(cls, subject, intro, fields_html, button, note=""):
+    email = SITE.get("contact_email", "")
+    return f"""<form class="{cls}" data-mailto="{e(email)}" data-subject="{e(subject)}" data-intro="{e(intro)}">
+  {fields_html}
+  <button class="btn btn-glow" type="submit">{button} {ARROW}</button>
+  <p class="signup-note req-note" role="status" hidden>If your email app didn't open, write to <b>{e(email)}</b>.</p>
+  {note}
+</form>"""
+
+
+def reaction_block(book=None):
+    opts = "".join(f'<option value="{e(b["title"])}"{" selected" if book and b["slug"] == book["slug"] else ""}>{e(b["title"])}</option>'
+                   for b in CATALOG["books"] if b["status"] == "out")
+    fields = f"""<label>Your name or handle<input class="input" name="name" data-label="Name or handle" required autocomplete="name"></label>
+  <label>Which book<select class="input" name="book" data-label="Book">{opts}</select></label>
+  <label>Your reaction<textarea class="input" name="reaction" data-label="Reaction" rows="3" required placeholder="One line about what you loved"></textarea></label>
+  <label class="check"><input type="checkbox" name="permission" data-label="OK to quote me with my name or handle on ashleyclaudy.com and Ashley's social pages" required><span>You may quote this with my name or handle on ashleyclaudy.com and Ashley's social pages.</span></label>"""
+    form = mailto_form("req", "Reader reaction: {book}", "A reaction for the site:", fields, "Open my email")
+    return f"""<div class="crew reveal" id="react" style="grid-template-areas:'copy' 'form'">
+  <div class="crew-copy">
+    <p class="kicker">Share a line</p>
+    <h2>Loved it? <span class="serif">Tell us.</span></h2>
+    <p class="lede">Send one line about what you loved. With your OK, it may appear on this site.</p>
+  </div>
+  <div class="signup-wrap">{form}</div>
+</div>"""
+
+
+def build_after(book):
+    r = "../"
+    slug = book["slug"]
+    cover_src = f"{r}assets/covers/{e(book['cover'])}"
+    nexts = [BOOKS[n] for n in AFTER.get(slug, []) if n in BOOKS and n != slug]
+    primary = nexts[0] if nexts else None
+    feature = ""
+    if primary:
+        tags = "".join(f"<li>{e(t)}</li>" for t in primary["tropes"][:4])
+        order_note = ("Book 2 in the same series." if primary["series"] == book["series"] and book["series"] != "standalones"
+                      else "A different world, same kind of trouble.")
+        feature = f"""<article class="res t-{primary['accent']}"><div class="res-grid">
+  <a class="res-cover reveal" href="{r}books/{primary['slug']}.html"><img class="cover-art" src="{r}assets/covers/{e(primary['cover'])}" alt="{e(primary['title'])} by Ashley Claudy, cover" width="333" height="500"></a>
+  <div class="res-copy reveal">
+    <p class="kicker">Read next · {e(order_note)}</p>
+    <h2 class="res-title">{e(primary['title'])}</h2>
+    <p class="lede">{e(primary['hook'])}</p>
+    <ul class="tags">{tags}</ul>
+    <div class="cta-row" data-dock-watch>{out_link(amazon(primary['kindle_asin']), f"{e(kindle_label(primary))} {ARROW}", "kindle-after", primary['slug'], "btn btn-glow")}<a class="btn btn-line" href="{r}books/{primary['slug']}.html">See the book</a></div>
+  </div></div></article>"""
+    more_cards = "".join(shelf_card(b, r, short_label(b), badge="Preorder" if b["status"] == "preorder" else "") for b in nexts[1:])
+    review_url = f"https://www.amazon.com/review/create-review?asin={book['kindle_asin']}"
+    review_btn = out_link(review_url, f"Leave a review on Amazon {ARROW}", "review-amazon", slug, "btn btn-glow", extra=' data-kind="review"')
+    gr_btn = out_link(book["goodreads"], "Rate it on Goodreads", "review-goodreads", slug, "btn btn-line")
+    body = f"""<section class="hero t-{book['accent']}">
+  {hero_bg(cover_src)}
+  <div class="wrap page-head">
+    <p class="kicker">Thanks for reading</p>
+    <h1>You finished <span class="serif" style="color:var(--glow)">{e(book['title'])}.</span></h1>
+    <p class="lede">Thank you. If it kept you up, here is what to read next, and one small favor.</p>
+  </div>
+</section>
+<section class="series t-{primary['accent'] if primary else book['accent']}" aria-label="Read next"><div class="wrap">{feature}
+  {f'<div class="grid-books" style="margin-top:44px">{more_cards}</div>' if more_cards else ''}
+</div></section>
+<section class="series t-{book['accent']}" aria-labelledby="fav-title"><div class="wrap">
+  <div class="series-head reveal"><p class="kicker">A small favor</p><h2 id="fav-title">Two minutes that help <span class="serif" style="color:var(--glow)">a lot.</span></h2>
+    <p>Honest reviews help other readers find the book. You never have to write one, and reviews can't be traded for anything.</p></div>
+  <div class="cta-row reveal" style="max-width:560px">{review_btn}{gr_btn}</div>
+  <p class="reveal" style="margin-top:22px"><button class="link" type="button" data-share-link="{abs_url('books/' + slug + '.html')}" data-share-text="I just finished {e(book['title'])} by Ashley Claudy.">Tell a friend about it</button></p>
+</div></section>
+<section class="section" id="join" aria-label="Join the Crew" data-dock-watch style="padding-top:0"><div class="wrap reveal">{crew(f"after-{slug}", 'Never miss the <span class="serif">next one.</span>', slug)}</div></section>
+<section class="section" style="padding-top:0"><div class="wrap">{reaction_block(book)}</div></section>
+<section class="section" style="padding-top:0"><div class="wrap"><div class="chip-links reveal"><a class="chip-link" href="{r}quiz.html">Take the quiz</a><a class="chip-link" href="{r}books.html">All books</a>{out_link(social_url("TikTok"), "Follow on TikTok", "social-tiktok", slug, "chip-link")}</div></div></section>"""
+    dock = {"label": f"Next: {primary['title']}" if primary else "Browse books", "url": amazon(primary["kindle_asin"]) if primary else "#",
+            "store": "kindle-dock", "book": primary["slug"] if primary else "", "sec": "#join"} if primary else None
+    return page(f"after/{slug}.html", f"Thanks for reading {book['title']} · Ashley Claudy",
+                f"What to read after {book['title']} by Ashley Claudy.", body, image=f"og/{slug}.jpg", theme=book["accent"], dock=dock, noindex=True)
+
+
+def arc_form():
+    nl = SITE["newsletter"]
+    action = nl.get("mailerlite_form_action", "")
+    w = wreck()
+    title = w["title"] if w["status"] == "preorder" else "the next release"
+    plat = "".join(f'<label class="check"><input type="checkbox" name="platform" value="{p}" data-label="{p}"><span>{p}</span></label>'
+                   for p in ["Amazon", "Goodreads", "BookBub", "TikTok", "Instagram", "A blog or podcast"])
+    if action:
+        return f"""<div class="signup-wrap">
+  <form class="signup req" data-signup="arc" method="post" data-action="{e(action)}" data-fallback="{e(nl["fallback_url"])}" novalidate>
+    <label>Your name<input class="input" name="fields[name]" required autocomplete="name"></label>
+    <label>Email<input class="input" id="arc-email" name="fields[email]" type="email" required autocomplete="email"></label>
+    <label>Link to your page or profile<input class="input" name="fields[review_link]" placeholder="tiktok.com/@you or goodreads.com/you"></label>
+    <fieldset class="check-group"><legend>Where will you post an honest review?</legend>{plat.replace('name="platform"', 'name="fields[platforms][]"')}</fieldset>
+    <input type="hidden" name="ml-submit" value="1"><input type="hidden" name="anticsrf" value="true">
+    <input type="hidden" name="fields[arc]" value="yes"><input type="hidden" name="fields[signup_source]" value="arc">
+    <input type="hidden" name="fields[quiz_result]" value=""><input type="hidden" name="fields[utm_source]" value="">
+    <input type="hidden" name="fields[utm_medium]" value=""><input type="hidden" name="fields[utm_campaign]" value="">
+    <p class="signup-error" role="alert" hidden></p>
+    <button class="btn btn-glow" type="submit">Apply for the ARC team {ARROW}</button>
+    <p class="signup-note">You'll also join the Crew newsletter. <a href="{PRIVACY_HREF}">Privacy</a></p>
+  </form>
+  <div class="signup-done" role="status" hidden><p class="done-title">Application received.</p><p>Ashley picks the team before release. Watch your inbox.</p></div>
+</div>"""
+    fields = f"""<label>Your name<input class="input" name="name" data-label="Name" required autocomplete="name"></label>
+  <label>Link to your page or profile<input class="input" name="link" data-label="My page" required placeholder="tiktok.com/@you or goodreads.com/you"></label>
+  <fieldset class="check-group"><legend>Where will you post an honest review?</legend>{plat}</fieldset>"""
+    return f'<div class="signup-wrap">{mailto_form("req", f"ARC team application: {title}", f"I would like to apply for the ARC team for {title}. I will post an honest review on the platforms below.", fields, "Apply for the ARC team")}</div>'
+
+
+def build_arc():
+    w = wreck()
+    what = "Wreck" if w["status"] == "preorder" else "Ashley's next release"
+    when = f"Wreck comes out {w['released']}." if w["status"] == "preorder" else "Applications stay open for the next release."
+    body = f"""<section class="hero t-ember">
+  {hero_bg("assets/covers/wreck.jpg")}
+  <div class="wrap page-head">
+    <p class="kicker">ARC team</p>
+    <h1>Read {e(what)} <span class="serif" style="color:var(--glow)">early.</span></h1>
+    <p class="lede">{e(when)} Join the advance reader team, get the book before release day, and post an honest review when it goes live.</p>
+  </div>
+</section>
+<section class="section" style="padding-top:0"><div class="wrap">
+  <div class="crew reveal" style="grid-template-areas:'copy' 'form'">
+    <div class="crew-copy">
+      <p class="kicker">How it works</p>
+      <h2>Apply in <span class="serif">a minute.</span></h2>
+      <ul class="perks">
+        <li>Ashley picks the team and sends the book privately before release.</li>
+        <li>You post an honest review on release day. Good or critical, it is your opinion.</li>
+        <li>Say in your post that you received a free copy (for example #gifted).</li>
+        <li>Reviews can't be exchanged for payment or rewards, and nobody is asked for a positive one.</li>
+      </ul>
+    </div>
+    {arc_form()}
+  </div>
+</div></section>"""
+    return page("arc.html", "Join the ARC Team · Ashley Claudy",
+                "Apply for Ashley Claudy's advance reader (ARC) team: read the next book early and post an honest review on release day.",
+                body, image="og/wreck.jpg", theme="ember")
+
+
+def build_privacy():
+    a = SITE.get("analytics", {})
+    tools = []
+    if a.get("plausible_domain"):
+        tools.append("Plausible Analytics, which does not use cookies and does not track you across sites")
+    if a.get("ga4_id"):
+        tools.append("Google Analytics, which uses cookies and loads only if you click Accept")
+    if a.get("meta_pixel_id"):
+        tools.append("the Meta Pixel (Facebook and Instagram), which uses cookies, measures our ads, and loads only if you click Accept")
+    analytics_p = ("This site uses " + "; ".join(tools) + "." if tools else "This site does not currently use analytics tools.")
+    email = SITE.get("contact_email", "")
+    sections = [
+        ("Who runs this site", f"This is the website of author Ashley Claudy. Questions about this policy: {e(email)}."),
+        ("What you give us", "If you join the newsletter, we collect your email address. We also record which page or form you joined from, which book you were viewing, your quiz result if you took the quiz, and the campaign link that brought you here, so we can send emails you will like. If you apply for the ARC team or send a review-copy request, a reaction, or a message, it goes to us by email from your own email app; the site itself does not receive it."),
+        ("Newsletter provider", "Newsletter signups are handled by MailerLite, which stores your email and sends our emails. Every email has an unsubscribe link. We do not sell or rent your email address."),
+        ("Stored in your browser", "To remember your choices, the site saves small items in your browser's local storage: whether you joined the newsletter, your quiz result, your Amazon store choice, and which campaign link you arrived by. They stay on your device. You can clear them in your browser settings."),
+        ("Analytics", analytics_p),
+        ("Amazon links", "Many buttons link to Amazon. As an Amazon Associate, Ashley earns from qualifying purchases. Amazon sets its own cookies when you visit it. We send visitors outside the US to their own Amazon store when we can tell where they are; you can change the store at the bottom of any page."),
+        ("Other companies", "TikTok, Instagram, and Spotify content loads only after you tap it, and then those companies' own policies apply. Fonts and images are hosted on this site."),
+        ("Your choices", "Unsubscribe from any email, or write to us to see, correct, or delete what we hold about you. You can decline analytics cookies when asked, and clear your browser storage at any time. Depending on where you live, you may have extra rights under laws such as the GDPR or the California Consumer Privacy Act, and you can use them by writing to us."),
+        ("Age", "The books are for readers 18 and older, and this site is not directed at children under 13."),
+        ("Changes", f"We will update this page if how we handle information changes. Last updated: {e(SITE.get('privacy_updated', ''))}."),
+    ]
+    body_html = "".join(f"<h2>{t}</h2><p>{c}</p>" for t, c in sections)
+    body = f"""<section class="hero t-blue">
+  {hero_bg("assets/covers/ride.jpg")}
+  <div class="wrap page-head"><p class="kicker">Privacy</p><h1>Privacy <span class="serif" style="color:var(--glow)">policy.</span></h1></div>
+</section>
+<section class="section" style="padding-top:0"><div class="wrap"><div class="prose">{body_html}</div></div></section>"""
+    return page("privacy.html", "Privacy Policy · Ashley Claudy", "How Ashley Claudy's website handles your email address, analytics, and browser storage.", body)
 
 
 # ---------- fan features (each one renders only when its content exists) ----------
@@ -717,15 +976,12 @@ def build_creators():
         <p class="fine">If you get a free copy, please say so in your post (for example #gifted). Reviews can't be exchanged for payment or rewards, and honest opinions are always welcome.</p>
       </div>
       <div class="signup-wrap">
-        <form class="req" data-mailto="{e(email)}">
-          <label>Your name<input class="input" name="name" required autocomplete="name"></label>
-          <label>Link to your page<input class="input" name="link" required placeholder="tiktok.com/@you"></label>
-          <label>Where you post<select class="input" name="platform">{platform_opts}</select></label>
-          <label>Which book<select class="input" name="book">{book_opts}</select></label>
-          <label>Anything else<textarea class="input" name="note" rows="3"></textarea></label>
-          <button class="btn btn-glow" type="submit">Open my email {ARROW}</button>
-          <p class="signup-note req-note" role="status" hidden>If your email app didn't open, write to <b>{e(email)}</b>.</p>
-        </form>
+        {mailto_form("req", "Review copy request: {book}", "I would love a review copy.",
+            f'''<label>Your name<input class="input" name="name" data-label="Name" required autocomplete="name"></label>
+          <label>Link to your page<input class="input" name="link" data-label="My page" required placeholder="tiktok.com/@you"></label>
+          <label>Where you post<select class="input" name="platform" data-label="Where I post">{platform_opts}</select></label>
+          <label>Which book<select class="input" name="book" data-label="Book">{book_opts}</select></label>
+          <label>Anything else<textarea class="input" name="note" data-label="Note" rows="3"></textarea></label>''', "Open my email")}
       </div>
     </div>
   </div>
@@ -805,32 +1061,42 @@ def build_genre(g):
 
 def build_home():
     r = ""
-    ride = BOOKS["ride"]
+    feat = BOOKS[featured_slug()]
+    fslug = feat["slug"]
     w = wreck()
-    lead, accent_words = split_tagline(ride["tagline"])
+    lead, accent_words = split_tagline(feat["tagline"])
     nbsp_words = accent_words.replace(" ", "&nbsp;")
 
     pill = ""
     if w["status"] == "preorder":
         pill = (f'<a class="pill hero-pill" href="books/wreck.html"><span class="dot"></span>'
                 f'<span>Wreck drops {e(release_short(w))} · <b><span data-days-until="{e(w["release_iso"])}">{days_left(w)}</span> days</b></span></a>')
-    hero = f"""<section class="hero t-blue" aria-labelledby="hero-title">
-  {hero_bg("assets/covers/ride.jpg")}
+    elif fslug == "wreck":
+        pill = '<a class="pill hero-pill" href="books/wreck.html"><span class="dot"></span><span>Wreck is out now</span></a>'
+    status_word = "Preorder" if feat["status"] == "preorder" else "Out now"
+    proof_items = ""
+    if feat.get("proof"):
+        rating = rating_of(feat)
+        proof_items += f"<li>{stars_html(rating) if rating else STAR}<b>{e(feat['proof'])}</b></li>"
+    if feat.get("pages"):
+        proof_items += f"<li>{feat['pages']} pages</li>"
+    proof_row = f'<ul class="proof-row">{proof_items}</ul>' if proof_items else ""
+    sample_btn = (out_link(kindle_sample(feat["kindle_asin"]), "Read the first chapters", "sample", fslug, "btn btn-line")
+                  if feat["status"] == "out" else '<a class="btn btn-line" href="#join">Get the cover reveal first</a>')
+    hero = f"""<section class="hero t-{feat['accent']}" aria-labelledby="hero-title">
+  {hero_bg("assets/covers/" + feat["cover"])}
   <div class="wrap hero-in">
     {pill}
-    <div class="hero-cover"><a data-tilt href="books/ride.html"><img class="cover-art" src="assets/covers/ride.jpg" alt="Ride by Ashley Claudy, cover" width="324" height="500" fetchpriority="high"></a></div>
+    <div class="hero-cover"><a data-tilt href="books/{fslug}.html"><img class="cover-art" src="assets/covers/{e(feat['cover'])}" alt="{e(feat['title'])} by Ashley Claudy, cover" width="324" height="500" fetchpriority="high"></a></div>
     <div class="hero-copy">
-      <p class="kicker">Crowns &amp; Chaos · Book 1 · Out now</p>
-      <h1 id="hero-title"><span class="sr-only">Ride by Ashley Claudy: </span>{e(lead)} <span class="serif">{nbsp_words}</span></h1>
-      <p class="lede">{e(ride['hook'])}</p>
+      <p class="kicker">{e(series_label(feat))} · {status_word}</p>
+      <h1 id="hero-title"><span class="sr-only">{e(feat['title'])} by Ashley Claudy: </span>{e(lead)} <span class="serif">{nbsp_words}</span></h1>
+      <p class="lede">{e(feat['hook'])}</p>
       <div class="cta-row" data-dock-watch>
-        {out_link(amazon(ride['kindle_asin']), f"Read free in Kindle Unlimited {ARROW}", "kindle", "ride", "btn btn-glow")}
-        {out_link(kindle_sample(ride['kindle_asin']), "Read the first chapters", "sample", "ride", "btn btn-line")}
+        {out_link(amazon(feat['kindle_asin']), f"{e(kindle_label(feat))} {ARROW}", "kindle", fslug, "btn btn-glow")}
+        {sample_btn}
       </div>
-      <ul class="proof-row">
-        <li>{STAR}<b>{e(ride['proof'])}</b></li>
-        <li>{ride['pages']} pages</li>
-      </ul>
+      {proof_row}
       {match_links()}
     </div>
   </div>
@@ -903,7 +1169,7 @@ def build_home():
 </section>"""
 
     body = hero + trope_marquee() + shelf + quiz_band() + (feed_section() or follow_band()) + preorder + wall_section() + join + about
-    dock = {"label": short_cta(ride), "url": amazon(ride["kindle_asin"]), "store": "kindle-dock", "book": "ride", "sec": "#join"}
+    dock = {"label": short_cta(feat), "url": amazon(feat["kindle_asin"]), "store": "kindle-dock", "book": fslug, "sec": "#join"}
     return page("index.html", "Ashley Claudy · New Adult Romance Author", SITE["meta_description"], body,
                 image="og/home.jpg", jsonld=[person_ld()], dock=dock)
 
@@ -989,7 +1255,7 @@ def build_book(book):
         sample = out_link(kindle_sample(book["kindle_asin"]), "Read a free sample", "sample", slug, "btn btn-line btn-block")
 
     def row(url, label, sub, store):
-        return (f'<a href="{e(url)}" target="_blank" rel="noopener" data-track="{e(store)}" data-book="{e(slug)}">'
+        return (f'<a href="{e(url)}" target="_blank" rel="noopener"{asin_attr(url)} data-track="{e(store)}" data-book="{e(slug)}">'
                 f'<span>{label} <small>{e(sub)}</small></span>{ARROW}</a>')
 
     more = []
@@ -1010,7 +1276,11 @@ def build_book(book):
     note_line = ("Preorders download automatically on release day." if book["status"] == "preorder"
                  else "Ebook exclusive to Amazon. Free to read with Kindle Unlimited." if book.get("kindle_unlimited")
                  else "Ebook exclusive to Amazon.")
-    proof = f'<p class="bk-proof">{STAR}{e(book["proof"])}</p>' if book.get("proof") else ""
+    proof = ""
+    if book.get("proof"):
+        rating = rating_of(book)
+        proof = (f'<p class="bk-proof">{stars_html(rating) if rating else STAR}<span>{e(book["proof"])}</span>'
+                 f'{out_link(book["goodreads"], "See reader reviews", "goodreads-reviews", slug, "link link-sm")}</p>')
 
     spec_rows = [("Series", series_label(book)), ("Released", book["released"])]
     if book.get("pages"):
@@ -1098,7 +1368,7 @@ def build_book(book):
     </div>
   </div>
 </section>
-<section class="section" id="join" aria-label="Join the Crew" data-dock-watch style="padding-top:0"><div class="wrap reveal">{crew("book", join_headline)}</div></section>
+<section class="section" id="join" aria-label="Join the Crew" data-dock-watch style="padding-top:0"><div class="wrap reveal">{crew("book", join_headline, slug)}</div></section>
 <section class="section" aria-labelledby="next-title" style="padding-top:0">
   <div class="wrap">
     <div class="series-head reveal"><p class="kicker">Read next</p><h2 id="next-title">Keep going</h2></div>
@@ -1208,7 +1478,7 @@ def build_bonus():
 
 def lb_row(href, title, sub, *, cover=None, icon=None, hot=False, theme="", store=None, book="", external=True):
     lead = (f'<img src="{e(cover)}" alt="" width="48" height="72">' if cover else f'<span class="lb-tile">{icon}</span>')
-    attrs = (f' target="_blank" rel="noopener" data-track="{e(store)}" data-book="{e(book)}"' if external else "")
+    attrs = (f' target="_blank" rel="noopener"{asin_attr(href)} data-track="{e(store)}" data-book="{e(book)}"' if external else "")
     cls = "lb-link" + (" hot" if hot else "") + (f" t-{theme}" if theme else "")
     return f'<a class="{cls}" href="{e(href)}"{attrs}>{lead}<span><b>{e(title)}</b><small>{e(sub)}</small></span>{ARROW}</a>'
 
@@ -1270,12 +1540,17 @@ def build(out: Path):
         "links.html": build_links(),
         "quiz.html": build_quiz(),
         "creators.html": build_creators(),
+        "arc.html": build_arc(),
+        "privacy.html": build_privacy(),
         "404.html": build_404(),
     }
     for book in CATALOG["books"]:
         pages[f"books/{book['slug']}.html"] = build_book(book)
     for g in GENRES:
         pages[f"{g['slug']}.html"] = build_genre(g)
+    for book in CATALOG["books"]:
+        if book["status"] == "out":
+            pages[f"after/{book['slug']}.html"] = build_after(book)
     for path, text in pages.items():
         target = out / path
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -1284,7 +1559,7 @@ def build(out: Path):
     today = date.today().isoformat()
     urls = "".join(
         f"<url><loc>{e(abs_url('' if p == 'index.html' else p))}</loc><lastmod>{today}</lastmod></url>"
-        for p in pages if p != "404.html"
+        for p in pages if p != "404.html" and not p.startswith("after/")
     )
     if wreck()["status"] == "preorder":
         (out / "wreck-release.ics").write_text(wreck_ics())
@@ -1296,11 +1571,13 @@ def build(out: Path):
     (out / "sitemap.xml").write_text(
         f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n')
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {abs_url('sitemap.xml')}\n")
-    (out / "_redirects").write_text("".join(f"{old} {new} 301\n" for old, new in OLD_URLS.items()))
+    (out / "_redirects").write_text("".join(f"{old} {new} 301\n" for old, new in OLD_URLS.items())
+                                    + "/after/:slug /after/:slug.html 200\n/arc /arc.html 200\n/privacy /privacy.html 200\n")
     htaccess = ["ErrorDocument 404 /404.html", "RewriteEngine On"]
     for old, new in OLD_URLS.items():
         pattern = "^" + old.lstrip("/").rstrip("/") + "/?$"
         htaccess.append(f"RewriteRule {pattern} {new} [R=301,L,NE]")
+    htaccess += ["RewriteRule ^after/([a-z0-9-]+)/?$ /after/$1.html [L]", "RewriteRule ^arc/?$ /arc.html [L]", "RewriteRule ^privacy/?$ /privacy.html [L]"]
     (out / ".htaccess").write_text("\n".join(htaccess) + "\n")
     return sorted(pages)
 

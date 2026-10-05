@@ -11,3 +11,6 @@
 /803-2/ /links.html 301
 /signup /bonus.html 301
 /signup/ /bonus.html 301
+/after/:slug /after/:slug.html 200
+/arc /arc.html 200
+/privacy /privacy.html 200

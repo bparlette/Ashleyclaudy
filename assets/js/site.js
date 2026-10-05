@@ -19,6 +19,11 @@
   }
 
   function track(name, props) {
+    props = props || {};
+    try {
+      if (window.__acStore) props.region = window.__acStore;
+      if (window.__acUtm && window.__acUtm.source) props.src = window.__acUtm.source;
+    } catch (e) {}
     try {
       if (window.plausible) window.plausible(name, { props: props });
       if (window.gtag) window.gtag("event", name, props);
@@ -27,6 +32,129 @@
   }
 
   if (store(JOINED_KEY) === "1") root.classList.add("joined");
+
+  /* ---------- campaign source (utm_*) remembered for attribution ---------- */
+  var utm = (function () {
+    var out = {};
+    try {
+      var q = new URLSearchParams(window.location.search);
+      var src = q.get("utm_source");
+      if (src) {
+        out = { source: src.toLowerCase(), medium: q.get("utm_medium") || "", campaign: q.get("utm_campaign") || "" };
+        store("ac_utm", JSON.stringify(out));
+      } else {
+        out = JSON.parse(store("ac_utm") || "{}") || {};
+      }
+    } catch (e) { out = {}; }
+    return out;
+  })();
+  window.__acUtm = utm;
+
+  function fillHidden(form) {
+    function put(name, val) {
+      var el = form.querySelector('input[name="' + name + '"]');
+      if (el && val) el.value = val;
+    }
+    put("fields[quiz_result]", store("ac_quiz") || "");
+    put("fields[utm_source]", utm.source || "");
+    put("fields[utm_medium]", utm.medium || "");
+    put("fields[utm_campaign]", utm.campaign || "");
+  }
+
+  /* ---------- send readers to their own Amazon store, with the right tracking ID ---------- */
+  var AMZ = window.AC_AMZ || { tags: {}, tracking: {} };
+  var REGION_MAP = { GB: "co.uk", IE: "co.uk", CA: "ca", AU: "com.au", NZ: "com.au", DE: "de", AT: "de", FR: "fr", ES: "es", IT: "it", NL: "nl", IN: "in", JP: "co.jp", MX: "com.mx", BR: "com.br" };
+  function detectStore() {
+    var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+    for (var i = 0; i < langs.length; i++) {
+      var m = /[-_]([A-Za-z]{2})$/.exec(langs[i]);
+      if (m) {
+        var c = m[1].toUpperCase();
+        if (c === "US") return "com";
+        if (REGION_MAP[c]) return REGION_MAP[c];
+      }
+    }
+    var tz = "";
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+    if (/^Europe\/(London|Dublin)$/.test(tz)) return "co.uk";
+    if (/^America\/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax|St_Johns|Regina)$/.test(tz)) return "ca";
+    if (/^(Australia\/|Pacific\/Auckland)/.test(tz)) return "com.au";
+    return "com";
+  }
+  function amzHref(a, domain) {
+    var asin = a.getAttribute("data-asin");
+    var path = a.getAttribute("data-kind") === "review" ? "/review/create-review?asin=" + asin : "/dp/" + asin;
+    var tag = (AMZ.tags || {})[domain] || "";
+    if (domain === "com" && utm.source && (AMZ.tracking || {})[utm.source]) tag = AMZ.tracking[utm.source];
+    var url = "https://www.amazon." + domain + path;
+    if (tag) url += (url.indexOf("?") > -1 ? "&" : "?") + "tag=" + encodeURIComponent(tag);
+    return url;
+  }
+  var amzStore = store("ac_amz") || detectStore();
+  function applyStore(domain) {
+    amzStore = domain;
+    window.__acStore = domain;
+    document.querySelectorAll("a[data-asin]").forEach(function (a) {
+      a.href = amzHref(a, domain);
+      a.setAttribute("data-store", domain);
+    });
+  }
+  applyStore(amzStore);
+  var amzSelect = document.querySelector("[data-amz-select]");
+  if (amzSelect) {
+    amzSelect.value = amzStore;
+    amzSelect.addEventListener("change", function () {
+      store("ac_amz", amzSelect.value);
+      applyStore(amzSelect.value);
+    });
+  }
+
+  /* ---------- analytics consent (only when Google Analytics or Meta Pixel is switched on) ---------- */
+  if (window.AC_CONSENT) {
+    var banner = document.querySelector("[data-consent-banner]");
+    var loadConsented = function () {
+      document.querySelectorAll('script[type="text/plain"][data-consent]').forEach(function (old) {
+        var n = document.createElement("script");
+        if (old.getAttribute("src")) { n.src = old.getAttribute("src"); n.async = false; } else { n.text = old.text; }
+        document.head.appendChild(n);
+        old.parentNode.removeChild(old);
+      });
+    };
+    var choice = store("ac_consent");
+    if (choice === "yes") loadConsented();
+    else if (!choice && banner) banner.hidden = false;
+    if (banner) {
+      banner.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-consent]");
+        if (!b) return;
+        store("ac_consent", b.getAttribute("data-consent"));
+        banner.hidden = true;
+        if (b.getAttribute("data-consent") === "yes") loadConsented();
+      });
+    }
+  }
+
+  /* ---------- sale-day banner ---------- */
+  document.querySelectorAll("[data-promo]").forEach(function (bar) {
+    try { if (window.sessionStorage.getItem("ac_promo_x") === "1") { bar.hidden = true; return; } } catch (e) {}
+    var ends = Date.parse(bar.getAttribute("data-ends") || "");
+    var clockEl = bar.querySelector("[data-promo-clock]");
+    var close = bar.querySelector("[data-promo-close]");
+    if (close) close.addEventListener("click", function () {
+      bar.hidden = true;
+      try { window.sessionStorage.setItem("ac_promo_x", "1"); } catch (e) {}
+    });
+    if (!ends || !clockEl) return;
+    function tick() {
+      var left = ends - Date.now();
+      if (left <= 0) { bar.hidden = true; return false; }
+      var s = Math.floor(left / 1000), d = Math.floor(s / 86400);
+      var hms = pad(Math.floor((s % 86400) / 3600)) + ":" + pad(Math.floor((s % 3600) / 60)) + ":" + pad(s % 60);
+      clockEl.textContent = "Ends in " + (d > 0 ? d + "d " : "") + hms;
+      return true;
+    }
+    if (tick()) { var t = setInterval(function () { if (!tick()) clearInterval(t); }, 1000); }
+  });
 
   /* ---------- header turns solid after the hero ---------- */
   var head = document.querySelector(".site-head");
@@ -110,6 +238,7 @@
         return;
       }
       if (errorEl) errorEl.hidden = true;
+      fillHidden(form);
       track("Newsletter Signup", { form: form.getAttribute("data-signup") });
 
       if (action) {
@@ -304,20 +433,46 @@
     });
   }
 
-  /* ---------- review-copy request: opens the reader's email app ---------- */
+  /* ---------- forms that open the reader's own email app (review copy, ARC, reactions) ---------- */
   document.querySelectorAll("form[data-mailto]").forEach(function (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
-      var f = form.elements;
-      var body = "Hi Ashley,\n\nI'd love a review copy of " + f.book.value + ".\n\nName: " + f.name.value +
-        "\nWhere I post: " + f.platform.value + "\nMy page: " + f.link.value +
-        (f.note.value ? "\n\n" + f.note.value : "") + "\n\nThanks!";
-      var href = "mailto:" + form.getAttribute("data-mailto") + "?subject=" +
-        encodeURIComponent("Review copy request: " + f.book.value) + "&body=" + encodeURIComponent(body);
-      track("Creator Request", { book: f.book.value, platform: f.platform.value });
+      var lines = [];
+      var book = "";
+      Array.prototype.forEach.call(form.elements, function (el) {
+        if (!el.name || el.type === "submit" || el.type === "hidden") return;
+        if ((el.type === "checkbox" || el.type === "radio") && !el.checked) return;
+        var v = (el.value || "").trim();
+        if (!v) return;
+        if (el.name === "book") book = v;
+        var label = el.getAttribute("data-label") || el.name;
+        lines.push(el.type === "checkbox" ? "- " + label : label + ": " + v);
+      });
+      var subject = (form.getAttribute("data-subject") || "Message from ashleyclaudy.com").replace("{book}", book);
+      var body = "Hi Ashley,\n\n" + (form.getAttribute("data-intro") || "") + "\n\n" + lines.join("\n") + "\n\nThanks!";
+      track("Email Form", { form: subject.split(":")[0] });
       var note = form.querySelector(".req-note");
       if (note) note.hidden = false;
-      window.location.href = href;
+      var href = "mailto:" + form.getAttribute("data-mailto") + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+      (window.__acMail || function (h) { window.location.href = h; })(href);
+    });
+  });
+
+  /* ---------- share a link ---------- */
+  document.querySelectorAll("[data-share-link]").forEach(function (b) {
+    var label = b.textContent;
+    b.addEventListener("click", function () {
+      var url = b.getAttribute("data-share-link");
+      var text = b.getAttribute("data-share-text") || "";
+      track("Share", { url: url });
+      if (navigator.share) {
+        navigator.share({ title: document.title, text: text, url: url }).catch(function () {});
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () {
+          b.textContent = "Link copied";
+          setTimeout(function () { b.textContent = label; }, 1800);
+        }, function () {});
+      }
     });
   });
 

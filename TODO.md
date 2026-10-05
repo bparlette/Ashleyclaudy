@@ -16,6 +16,7 @@
 - [x] Creators & press hub (`creators.html`): kit downloads, captions, review-copy request, press facts
 - [x] Five search-targeted genre pages (`content/genres.json`) with FAQ structured data
 - [x] Home-screen icons and manifest, quiz-match personalization
+- [x] Sales/retention tools: after-the-book pages (`/after/<book>`), regional Amazon links with channel tracking IDs, signup segmentation fields, privacy page and consent gating, ARC page, sale-day banner, release mode, star ratings, reaction form (see README), welcome-email drafts in `emails/`
 
 ## Before launch, verify
 - [ ] TikTok figure on the site is "1.6M likes" (profile also shows ~9.8K followers). Re-check it before launch; it lives in `content/site.json` under `proof`
@@ -26,6 +27,15 @@
 - [ ] MailerLite: paste the bonus-chapters embedded-form action URL into `site.json` as `mailerlite_form_action`, then rebuild (until then, signups bounce to SubscribePage)
 - [ ] The bonus chapters in the MailerLite welcome email match what the site promises
 - [ ] Fill in `plausible_domain` / `ga4_id` / `meta_pixel_id` in `site.json` as needed
+
+## Setup for the new sales tools (needs Cherie/Ashley's accounts)
+- [ ] MailerLite: create the custom fields listed in README (`quiz_result`, `signup_source`, `book`, `utm_*`, `arc`, `review_link`, `platforms`), then build the welcome automation from `emails/welcome-series.md` with one branch per `quiz_result`
+- [ ] Amazon Associates: create tracking IDs for `tiktok`, `instagram`, `facebook`, `email`, `ads` and add them to `site.json` → `amazon_tracking_ids`; add store IDs for UK, Canada, Australia, etc. to `amazon_tags` if she has them
+- [ ] Add `https://ashleyclaudy.com/after/<book>` (and the ARC link) to the back matter of every ebook and paperback
+- [ ] Use `?utm_source=...` on every link posted to TikTok, Instagram, Facebook, email, and ads
+- [ ] Privacy policy: have it reviewed before launch; add its URL to the Meta and TikTok ad accounts
+- [ ] Collect permissioned reader quotes (the after-book "share a line" form sends them by email), paste them into `content/fan.json` → `fan_wall` or a book's `quotes`
+- [ ] For a sale (Countdown Deal, BookBub feature): fill `site.json` → `promo`, rebuild, deploy
 
 ## Content upgrades (when available)
 - [ ] Paste real TikTok/Instagram post links into `content/fan.json` to switch on the live social feed

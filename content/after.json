@@ -1,0 +1,29 @@
+{
+  "_help": "For each book, what to recommend on its after-the-book page (first item gets the big button).",
+  "ride": [
+    "wreck",
+    "hustle"
+  ],
+  "wreck": [
+    "ride",
+    "hustle"
+  ],
+  "hustle": [
+    "ride",
+    "it-goes-on"
+  ],
+  "outside-the-ropes": [
+    "inside-danger"
+  ],
+  "inside-danger": [
+    "otherside-of-fear"
+  ],
+  "otherside-of-fear": [
+    "ride",
+    "hustle"
+  ],
+  "it-goes-on": [
+    "hustle",
+    "ride"
+  ]
+}

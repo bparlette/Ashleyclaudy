@@ -48,6 +48,20 @@ This regenerates `dist/`, the folder that gets published. Python 3.9 or newer, n
 - **Sharper covers:** the covers are 333 by 500 pixels. Drop in larger versions (around 1000 by 1500) with the same file names. Cover art is the one thing holding the design back, so sharper files make the biggest visual upgrade.
 - **Share cards:** the 1200 by 630 images people see when a link is shared on Facebook, TikTok, iMessage, and X live in `assets/og/`. After changing a cover, title, or tagline, run `node tools/make-share-cards.js`, then rebuild.
 
+## Sales and retention tools
+
+| Tool | How it works | What you set |
+|---|---|---|
+| **After-the-book pages** | `ashleyclaudy.com/after/<book>` (for example `/after/ride`) says thank you, recommends the next book, asks for a review, and has a signup and a "share a line" form. Put this link on the last page of every ebook and paperback. They are not in search results on purpose. | Edit who each page recommends in `content/after.json`. |
+| **Amazon store routing** | Buy buttons send readers outside the US to their own Amazon store (UK, Canada, Australia, Germany, and more). A picker in the footer lets anyone change it. | Add one Associates tracking ID per store in `site.json` → `amazon_tags`. Blank = that store without a tag. |
+| **Channel attribution** | Tag every link you post with `?utm_source=tiktok` (or `instagram`, `facebook`, `email`, `ads`). The buy buttons then use that channel's own Associates tracking ID, so Associates reports show which channel sells. | Create tracking IDs in Associates and add them to `site.json` → `amazon_tracking_ids`. |
+| **Email segments** | Every signup sends the quiz result, the page or book it came from, and the campaign source to MailerLite. Draft emails are in `emails/welcome-series.md`. | Create these custom fields in MailerLite: `signup_source`, `book`, `quiz_result`, `utm_source`, `utm_medium`, `utm_campaign`, `arc`, `review_link`, `platforms`. |
+| **Sale-day banner** | A colored bar on every page with a live countdown. | `site.json` → `promo`: set `enabled`, `text`, `url`, `ends_iso` (for example `2026-12-28T23:59:00-05:00`), rebuild. |
+| **Release mode** | When Wreck's `status` becomes `out`, the home page hero switches to Wreck for 45 days, the preorder section disappears, and `/after/wreck` appears. | Change Wreck's status in `books.json`. Or force a book with `site.json` → `featured_book`. |
+| **ARC team** (`arc.html`) | Application page for advance readers. Opens the applicant's email, or posts to MailerLite once the form address is set. | Nothing. |
+| **Privacy and consent** (`privacy.html`) | The policy lists only the tools that are switched on. If Google Analytics or the Meta Pixel is on, a consent bar appears and those scripts load only after Accept. | Have a lawyer review the policy before relying on it. |
+| **Star ratings** | A star bar appears on a book page when its `proof` text contains a number such as "4.1 stars". | Keep `proof` accurate in `books.json`. |
+
 ## Generated assets and tools
 
 Run these from the repo root, then `python3 build.py`. They need Node, Playwright (`npm i -g playwright && npx playwright install chromium`), and ffmpeg.

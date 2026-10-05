@@ -25,11 +25,13 @@
 <link rel="preload" href="assets/fonts/inter-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/site.css">
 <script>document.documentElement.classList.add("js")</script>
+<script>window.AC_AMZ={"tags":{"com":"ashlclau-20"},"tracking":{}};</script>
 
 
 </head>
 <body class="t-blue">
 <a class="skip" href="#main">Skip to content</a>
+
 <header class="site-head">
   <div class="wrap head-row">
     <a class="logo" href="index.html" aria-label="Ashley Claudy, home">Ashley Claudy</a>
@@ -171,15 +173,16 @@ It Goes On by @ashley.claudy. Read free in Kindle Unlimited. Link in bio.
         <p class="fine">If you get a free copy, please say so in your post (for example #gifted). Reviews can't be exchanged for payment or rewards, and honest opinions are always welcome.</p>
       </div>
       <div class="signup-wrap">
-        <form class="req" data-mailto="ashleyclaudy@gmail.com">
-          <label>Your name<input class="input" name="name" required autocomplete="name"></label>
-          <label>Link to your page<input class="input" name="link" required placeholder="tiktok.com/@you"></label>
-          <label>Where you post<select class="input" name="platform"><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Blog</option><option>Podcast</option><option>Goodreads</option><option>Other</option></select></label>
-          <label>Which book<select class="input" name="book"><option value="Ride">Ride</option><option value="Wreck">Wreck (preorder)</option><option value="Hustle">Hustle</option><option value="Outside the Ropes">Outside the Ropes</option><option value="Inside Danger">Inside Danger</option><option value="OtherSide of Fear">OtherSide of Fear</option><option value="It Goes On">It Goes On</option></select></label>
-          <label>Anything else<textarea class="input" name="note" rows="3"></textarea></label>
-          <button class="btn btn-glow" type="submit">Open my email <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4.5-5L15.5 10l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <p class="signup-note req-note" role="status" hidden>If your email app didn't open, write to <b>ashleyclaudy@gmail.com</b>.</p>
-        </form>
+        <form class="req" data-mailto="ashleyclaudy@gmail.com" data-subject="Review copy request: {book}" data-intro="I would love a review copy.">
+  <label>Your name<input class="input" name="name" data-label="Name" required autocomplete="name"></label>
+          <label>Link to your page<input class="input" name="link" data-label="My page" required placeholder="tiktok.com/@you"></label>
+          <label>Where you post<select class="input" name="platform" data-label="Where I post"><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Blog</option><option>Podcast</option><option>Goodreads</option><option>Other</option></select></label>
+          <label>Which book<select class="input" name="book" data-label="Book"><option value="Ride">Ride</option><option value="Wreck">Wreck (preorder)</option><option value="Hustle">Hustle</option><option value="Outside the Ropes">Outside the Ropes</option><option value="Inside Danger">Inside Danger</option><option value="OtherSide of Fear">OtherSide of Fear</option><option value="It Goes On">It Goes On</option></select></label>
+          <label>Anything else<textarea class="input" name="note" data-label="Note" rows="3"></textarea></label>
+  <button class="btn btn-glow" type="submit">Open my email <svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4.5-5L15.5 10l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <p class="signup-note req-note" role="status" hidden>If your email app didn't open, write to <b>ashleyclaudy@gmail.com</b>.</p>
+  
+</form>
       </div>
     </div>
   </div>
@@ -202,7 +205,9 @@ It Goes On by @ashley.claudy. Read free in Kindle Unlimited. Link in bio.
       <a href="bonus.html">Bonus chapters</a>
       <a href="books.html#where-to-buy">Where to buy</a>
       <a href="creators.html">Creators &amp; press</a>
+      <a href="arc.html">ARC team</a>
       <a href="links.html">Links</a>
+      <a href="privacy.html">Privacy</a>
       <a href="index.html#about">About</a>
     </nav>
     <nav class="foot-nav foot-explore" aria-label="Explore">
@@ -211,6 +216,8 @@ It Goes On by @ashley.claudy. Read free in Kindle Unlimited. Link in bio.
     <div class="fine-col">
       <p class="fine">As an Amazon Associate I earn from qualifying purchases.</p>
       <p class="fine">© 2026 Ashley Claudy. All rights reserved.</p>
+      <p class="amz-pick fine"><label for="amz-store">Amazon store</label>
+        <select id="amz-store" data-amz-select><option value="com">United States (amazon.com)</option><option value="co.uk">United Kingdom (amazon.co.uk)</option><option value="ca">Canada (amazon.ca)</option><option value="com.au">Australia (amazon.com.au)</option><option value="de">Germany (amazon.de)</option><option value="fr">France (amazon.fr)</option><option value="es">Spain (amazon.es)</option><option value="it">Italy (amazon.it)</option><option value="nl">Netherlands (amazon.nl)</option><option value="in">India (amazon.in)</option><option value="co.jp">Japan (amazon.co.jp)</option><option value="com.mx">Mexico (amazon.com.mx)</option><option value="com.br">Brazil (amazon.com.br)</option></select></p>
     </div>
   </div>
   <div class="big-mark" aria-hidden="true"><span>Ashley</span><span>Claudy</span></div>
@@ -231,8 +238,14 @@ It Goes On by @ashley.claudy. Read free in Kindle Unlimited. Link in bio.
       </div>
       <input type="hidden" name="ml-submit" value="1">
       <input type="hidden" name="anticsrf" value="true">
+      <input type="hidden" name="fields[signup_source]" value="modal">
+      <input type="hidden" name="fields[book]" value="">
+      <input type="hidden" name="fields[quiz_result]" value="">
+      <input type="hidden" name="fields[utm_source]" value="">
+      <input type="hidden" name="fields[utm_medium]" value="">
+      <input type="hidden" name="fields[utm_campaign]" value="">
       <p class="signup-error" role="alert" hidden></p>
-      <p class="signup-note">Free. Unsubscribe anytime. Your email is never shared.</p>
+      <p class="signup-note">Free. Unsubscribe anytime. Your email is never shared. <a href="privacy.html">Privacy</a></p>
     </form>
     <div class="signup-done" role="status" hidden>
       <p class="done-title">You're on the Crew.</p>

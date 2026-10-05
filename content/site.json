@@ -77,5 +77,37 @@
   ],
   "press": {
     "note": "TikTok shows 1.6M likes and about 9.8K followers (checked from the profile in October 2026). Update the likes figure in proof when it changes."
-  }
+  },
+  "amazon_tags": {
+    "com": "",
+    "co.uk": "",
+    "ca": "",
+    "com.au": "",
+    "de": "",
+    "fr": "",
+    "es": "",
+    "it": "",
+    "nl": "",
+    "in": "",
+    "co.jp": "",
+    "com.mx": "",
+    "com.br": ""
+  },
+  "amazon_tracking_ids": {
+    "tiktok": "",
+    "instagram": "",
+    "facebook": "",
+    "email": "",
+    "ads": ""
+  },
+  "promo": {
+    "enabled": false,
+    "text": "",
+    "cta": "Get the deal",
+    "url": "",
+    "ends_iso": ""
+  },
+  "featured_book": "",
+  "privacy_updated": "October 5, 2026",
+  "_help_new": "amazon_tags: Amazon Associates tracking ID per store (leave blank to send visitors to that store without a tag). amazon_tracking_ids: tracking ID per traffic source (utm_source), US store only, so Associates reports show which channel sells. promo: turn on the sale-day banner with a live countdown. featured_book: force a book into the home-page hero (blank = automatic)."
 }
