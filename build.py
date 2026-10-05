@@ -56,7 +56,7 @@ for _g in GENRES:
     if _g["slug"] != "kindle-unlimited-romance":
         for _b in _g["books"]:
             BOOK_GENRE.setdefault(_b, _g)
-PLATFORMS = {"tiktok": "TikTok", "instagram": "Instagram"}
+PLATFORMS = {"tiktok": "TikTok", "instagram": "Instagram", "facebook": "Facebook"}
 PLAY = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>')
 PAUSE = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>')
 
@@ -227,7 +227,7 @@ def socials():
     items = "".join(
         f'<li><a href="{e(s["url"])}" target="_blank" rel="noopener" data-track="social-{e(s["name"].lower())}">'
         f'{e(s["name"])} <small>{e(s["handle"])}</small></a></li>'
-        for s in SITE["social"]
+        for s in SITE["social"] if not s.get("hidden")
     )
     return f'<ul class="socials">{items}</ul>'
 
@@ -693,6 +693,8 @@ def embed_url(post):
         return f"https://www.tiktok.com/embed/v2/{m.group(1)}" if m else ""
     if post.get("platform") == "instagram" and url:
         return url.split("?")[0].rstrip("/") + "/embed"
+    if post.get("platform") == "facebook" and "facebook.com/" in url:
+        return "https://www.facebook.com/plugins/video.php?href=" + quote(url, safe="") + "&show_text=false&t=0"
     return ""
 
 
@@ -714,13 +716,13 @@ def feed_section():
 </article>"""
     follow = "".join(
         out_link(social_url(name), f"Follow on {name}", f"social-{name.lower()}", "", "btn btn-line")
-        for name in ("TikTok", "Instagram")
+        for name in ("TikTok", "Facebook")
     )
     return f"""<section class="section" id="feed" aria-labelledby="feed-title">
   <div class="wrap"><div class="sec-head reveal">
     <p class="kicker">Most loved</p>
     <h2 class="h2" id="feed-title">Her most-loved <span class="serif">TikToks.</span></h2>
-    <p>The posts readers love most from @ashley.claudy. Tap one to play it right here.</p>
+    <p>Ashley's most-loved posts. Tap one to play it right here.</p>
   </div></div>
   <div class="shelf feed" tabindex="0" aria-label="Most-loved TikTok posts">{cards}</div>
   <div class="shelf-foot feed-follow">{follow}</div>
@@ -878,7 +880,7 @@ def follow_band():
     handle = next((x["handle"] for x in SITE["social"] if x["name"] == "TikTok"), "@ashley.claudy")
     big = (f'<div class="fb-count"><b>{e(count)}</b><span>{e(tt["label"])}</span></div>' if count else "")
     buttons = (out_link(social_url("TikTok"), f"Follow {e(handle)} {ARROW}", "social-tiktok", "", "btn btn-glow")
-               + out_link(social_url("Instagram"), "Follow on Instagram", "social-instagram", "", "btn btn-line"))
+               + out_link(social_url("Facebook"), "Follow on Facebook", "social-facebook", "", "btn btn-line"))
     return f"""<section class="section" id="follow" style="padding-block:0 clamp(72px,11vw,136px)" aria-label="Follow Ashley">
   <div class="wrap">
     <div class="followband reveal">

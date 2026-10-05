@@ -4,6 +4,7 @@
     python3 tools/add-post.py https://www.tiktok.com/@ashley.claudy/video/123... --likes 55K
     python3 tools/add-post.py URL --caption "My own caption" --hide
     python3 tools/add-post.py URL1 URL2 URL3          # several at once
+    python3 tools/add-post.py https://www.facebook.com/AshleyClaudy/videos/123 --caption "Hustle is out" --thumb frame.jpg
 
 It asks TikTok's public oEmbed service about the link (so a wrong link is caught),
 saves the video's thumbnail into assets/social/, and adds or updates the entry in
@@ -11,8 +12,10 @@ content/fan.json. Then run: python3 build.py
 
 Needs internet access and Python 3. ffmpeg is used to shrink thumbnails if installed.
 Photo posts can't be looked up this way, so they are not supported yet.
+Facebook video links can't be checked automatically: give --caption, and optionally --thumb (an image file).
 """
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -41,7 +44,35 @@ def fetch(url, timeout=30):
     return urllib.request.urlopen(req, timeout=timeout).read()
 
 
-def add(url, likes, caption, hide):
+def add_facebook(url, likes, caption, hide, thumb):
+    vid = "fb-" + hashlib.sha1(url.encode()).hexdigest()[:10]
+    thumb_rel = ""
+    if thumb:
+        OUT.mkdir(parents=True, exist_ok=True)
+        dest = OUT / f"{vid}.jpg"
+        if shutil.which("ffmpeg"):
+            subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", thumb, "-vf", "scale=540:-1", "-q:v", "4", str(dest)], check=True)
+        else:
+            shutil.copy(thumb, dest)
+        thumb_rel = f"assets/social/{vid}.jpg"
+    entry = {"platform": "facebook", "url": url, "caption": caption or "", "thumb": thumb_rel, "likes": likes or "", "show": not hide}
+    data = json.loads(FAN.read_text())
+    posts = data.setdefault("social_posts", [])
+    for i, p in enumerate(posts):
+        if p.get("url") == url:
+            posts[i] = {**p, **entry}
+            action = "updated"
+            break
+    else:
+        posts.append(entry)
+        action = "added"
+    FAN.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    print(f"{action}: Facebook post ({'hidden' if hide else 'shown'}) caption={entry['caption']!r}")
+
+
+def add(url, likes, caption, hide, thumb=None):
+    if "facebook.com/" in url:
+        return add_facebook(url, likes, caption, hide, thumb)
     m = re.search(r"tiktok\.com/@([\w.]+)/video/(\d+)", url)
     if not m:
         sys.exit(f"Not a TikTok video link: {url}")
@@ -94,11 +125,12 @@ def main():
     ap.add_argument("--likes", help='like count to show, for example "55K" (only with one link)')
     ap.add_argument("--caption", help="caption to show instead of TikTok's own text (only with one link)")
     ap.add_argument("--hide", action="store_true", help="save it but keep it off the site")
+    ap.add_argument("--thumb", help="image file to use as the thumbnail (Facebook posts)")
     a = ap.parse_args()
     if len(a.urls) > 1 and (a.likes or a.caption):
         sys.exit("--likes and --caption work with one link at a time.")
     for u in a.urls:
-        add(u, a.likes, a.caption, a.hide)
+        add(u, a.likes, a.caption, a.hide, a.thumb)
 
 
 if __name__ == "__main__":

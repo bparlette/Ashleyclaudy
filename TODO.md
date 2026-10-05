@@ -21,7 +21,7 @@
 ## Before launch, verify
 - [ ] TikTok figure on the site is "1.6M likes" (profile also shows ~9.8K followers). Re-check it before launch; it lives in `content/site.json` under `proof`
 - [ ] Ride and Wreck are enrolled in Kindle Unlimited (the site says "Read free in Kindle Unlimited")
-- [ ] `@ayclaudy` is still the right Instagram account
+- [x] Instagram `@ayclaudy` is confirmed but dormant since September 2020 (718 followers), so it is hidden from the site's follow buttons (`site.json` → Instagram → `hidden`). Facebook (4.9K followers) is used instead. Re-show Instagram once she posts there again
 - [ ] The Amazon Associates tag `ashlclau-20` is still active (if the account was closed, set `"amazon_affiliate_tag": ""`)
 - [ ] The contact email in `site.json` is the one to publish
 - [ ] MailerLite: paste the bonus-chapters embedded-form action URL into `site.json` as `mailerlite_form_action`, then rebuild (until then, signups bounce to SubscribePage)
@@ -38,6 +38,8 @@
 - [ ] For a sale (Countdown Deal, BookBub feature): fill `site.json` → `promo`, rebuild, deploy
 
 ## Content upgrades (when available)
+- [ ] Facebook: send the link to the Hustle promo reel and run `python3 tools/add-post.py <link> --caption "..." --thumb frame.jpg` to add it to the feed
+- [ ] Revive Instagram by posting her TikToks as Reels for a month; if it picks up, un-hide it and add posts to the feed
 - [x] Social feed live with her top TikTok posts (add more with `python3 tools/add-post.py`)
 - [ ] Confirm the like counts for two posts: link `7147325034946678059` (shown, no likes yet) and `7188492021064060202` (hidden One Tree Hill clip). They were listed as 55.4K and 53.8K but the captions and links were swapped
 - [ ] Decide whether to show the three TV-clip posts (One Tree Hill x2, House of the Dragon); they are saved but hidden because they aren't about her books

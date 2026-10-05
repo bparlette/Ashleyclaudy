@@ -26,7 +26,9 @@
     {
       "name": "Instagram",
       "handle": "@ayclaudy",
-      "url": "https://instagram.com/ayclaudy/"
+      "url": "https://instagram.com/ayclaudy/",
+      "hidden": true,
+      "note": "Hidden: dormant since Sept 2020 (718 followers). Remove \"hidden\" when she posts again. Facebook has 4.9K followers."
     },
     {
       "name": "Goodreads",
