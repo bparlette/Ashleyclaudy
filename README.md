@@ -63,7 +63,7 @@ Re-run the trailer and share-card tools after changing a cover, hook, tagline, o
 ## Search pages and the creator hub
 
 - `content/genres.json` drives five search-targeted pages (street racing and motorcycle club, college football, boxing, one-night-stand, Kindle Unlimited). Each has a short intro, the books, an FAQ with search-engine markup, and a signup. Add a page by adding an entry. Keep answers factual and taken from the books.
-- `creators.html` is the hub for BookTok, Bookstagram, podcast, and blog creators: downloadable trailers and story images, copy-ready captions, a review-copy request form that opens the creator's email app, and press facts. The TikTok follower count is in `content/site.json` under `proof`; update it when it changes.
+- `creators.html` is the hub for BookTok, Bookstagram, podcast, and blog creators: downloadable trailers and story images, copy-ready captions, a review-copy request form that opens the creator's email app, and press facts. The TikTok likes figure is in `content/site.json` under `proof`; update it when it changes.
 - Readers who finish the quiz see "Your quiz match" on the home page the next time they visit.
 
 ## Fan features (add content, rebuild, they appear)

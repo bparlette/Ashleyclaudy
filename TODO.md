@@ -11,8 +11,14 @@
 - [x] Cinematic phone-first redesign on main (self-hosted fonts, sticky mobile buy bar, trope marquee, Wreck countdown, share buttons, share cards in `assets/og/`)
 - [x] SEO: `sitemap.xml`, `robots.txt`, 301s from old WordPress URLs (`_redirects` + `.htaccess`)
 - [x] Ad-event tracking hooks: `Retailer Click`, `Newsletter Signup`, `Join Modal Shown`
+- [x] Fan features: "Which kind of trouble are you?" quiz (`quiz.html`, `content/quiz.json`), click-to-load social feed, trailer/audio/playlist/character blocks, reader quotes, Wreck calendar reminders
+- [x] Generated trailers (12s, 1080x1920), story images, and thumbnails for every book (`node tools/make-trailers.js`)
+- [x] Creators & press hub (`creators.html`): kit downloads, captions, review-copy request, press facts
+- [x] Five search-targeted genre pages (`content/genres.json`) with FAQ structured data
+- [x] Home-screen icons and manifest, quiz-match personalization
 
 ## Before launch, verify
+- [ ] TikTok figure on the site is "1.6M likes" (profile also shows ~9.8K followers). Re-check it before launch; it lives in `content/site.json` under `proof`
 - [ ] Ride and Wreck are enrolled in Kindle Unlimited (the site says "Read free in Kindle Unlimited")
 - [ ] `@ayclaudy` is still the right Instagram account
 - [ ] The Amazon Associates tag `ashlclau-20` is still active (if the account was closed, set `"amazon_affiliate_tag": ""`)
@@ -22,6 +28,9 @@
 - [ ] Fill in `plausible_domain` / `ga4_id` / `meta_pixel_id` in `site.json` as needed
 
 ## Content upgrades (when available)
+- [ ] Paste real TikTok/Instagram post links into `content/fan.json` to switch on the live social feed
+- [ ] Replace the TikTok Linktree (linktr.ee/ashleyclaudy) with `ashleyclaudy.com/links.html` once the domain is live
+- [ ] Audiobook samples: only after written OK from Podium / Tantor, then add `audio_sample` in `books.json`
 - [ ] Wreck real cover: replace `assets/covers/wreck.jpg` (same file name), update `blurb`/`tropes`/`hook` in `content/books.json`, regen share cards (`node tools/make-share-cards.js`), rebuild
 - [ ] Wreck release day (Dec 31, 2026): change Wreck's `"status"` from `"preorder"` to `"out"` in `books.json` (announcement bar, countdown, and preorder band disappear on their own)
 - [ ] Sharper covers: current files are 333x500; drop in ~1000x1500 versions with the same file names

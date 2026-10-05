@@ -609,9 +609,10 @@ def quiz_band():
 
 def follow_band():
     sp = SITE.get("proof", [])
-    count = next((p["figure"] for p in sp if "TikTok" in p["label"]), "")
+    tt = next((p for p in sp if "TikTok" in p["label"]), None)
+    count = tt["figure"] if tt else ""
     handle = next((x["handle"] for x in SITE["social"] if x["name"] == "TikTok"), "@ashley.claudy")
-    big = (f'<div class="fb-count"><b>{e(count)}</b><span>followers on TikTok</span></div>' if count else "")
+    big = (f'<div class="fb-count"><b>{e(count)}</b><span>{e(tt["label"])}</span></div>' if count else "")
     buttons = (out_link(social_url("TikTok"), f"Follow {e(handle)} {ARROW}", "social-tiktok", "", "btn btn-glow")
                + out_link(social_url("Instagram"), "Follow on Instagram", "social-instagram", "", "btn btn-line"))
     return f"""<section class="section" id="follow" style="padding-block:0 clamp(72px,11vw,136px)" aria-label="Follow Ashley">
@@ -682,11 +683,11 @@ def build_creators():
     book_opts = "".join(f'<option value="{e(b["title"])}">{e(b["title"])}{" (preorder)" if b["status"] == "preorder" else ""}</option>' for b in CATALOG["books"])
     platform_opts = "".join(f"<option>{p}</option>" for p in ["TikTok", "Instagram", "YouTube", "Blog", "Podcast", "Goodreads", "Other"])
     bio = "".join(f"<p>{e(p)}</p>" for p in SITE["bio"])
-    followers = next((p["figure"] for p in SITE.get("proof", []) if "TikTok" in p["label"]), "")
+    tt = next((p for p in SITE.get("proof", []) if "TikTok" in p["label"]), None)
     facts = [("Genre", "New Adult romance (18+)"), ("Books", f"{len(CATALOG['books'])} novels plus the Outside the Ropes box set"),
              ("Audiobooks", "Hustle and the Outside the Ropes trilogy on Audible"), ("Based in", SITE.get("location", ""))]
-    if followers:
-        facts.insert(1, ("TikTok", f"{SITE['social'][0]['handle']} · {followers} followers"))
+    if tt:
+        facts.insert(1, ("TikTok", f"{SITE['social'][0]['handle']} · {tt['figure']} {tt['label'].replace(' on TikTok', '')}"))
     facts_html = "".join(f"<div><dt>{e(k)}</dt><dd>{e(v)}</dd></div>" for k, v in facts if v)
     body = f"""<section class="hero t-blue">
   {hero_bg("assets/covers/ride.jpg")}

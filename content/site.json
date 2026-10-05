@@ -60,7 +60,7 @@
   "proof": [
     {
       "figure": "1.6M",
-      "label": "followers on TikTok"
+      "label": "likes on TikTok"
     },
     {
       "figure": "13,000+",
@@ -76,6 +76,6 @@
     }
   ],
   "press": {
-    "note": "TikTok follower count read from the public profile in October 2026. Update it on site.json before publishing if it has changed."
+    "note": "TikTok shows 1.6M likes and about 9.8K followers (checked from the profile in October 2026). Update the likes figure in proof when it changes."
   }
 }
