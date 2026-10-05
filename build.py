@@ -1217,7 +1217,7 @@ def build_home():
     about = f"""<section class="section" id="about" aria-labelledby="about-title" style="padding-top:0">
   <div class="wrap about-grid">
     <div class="reveal">
-      <p class="kicker" id="about-title" style="margin-bottom:22px">The author</p>
+      <p class="kicker" id="about-title" style="margin-bottom:22px">About Ashley</p>
       <p class="about-quote">{e(bio[0])}</p>
     </div>
     <div class="about-copy reveal">
