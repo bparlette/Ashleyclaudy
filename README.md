@@ -128,7 +128,7 @@ The site reports three events to whichever tools are on: `Retailer Click` (with 
 ## Before launch, verify
 
 - [ ] Ride and Wreck are enrolled in Kindle Unlimited (the site says "Read free in Kindle Unlimited")
-- [ ] `@ayclaudy` is still the right Instagram account
+- [x] Instagram `@ayclaudy` is dormant since Sept 2020 and hidden from the site (see `site.json`); un-hide it when she posts again
 - [ ] The Amazon Associates tag `ashlclau-20` is still active. If the account was closed, set `"amazon_affiliate_tag": ""`
 - [ ] The contact email in `site.json` is the one to publish
 - [ ] The bonus chapters in the MailerLite welcome email match what the site promises
