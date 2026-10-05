@@ -296,6 +296,31 @@
     a.load();
   });
 
+  /* ---------- quiz match on the home page ---------- */
+  var matched = store("ac_quiz");
+  if (matched) {
+    document.querySelectorAll("[data-match-book]").forEach(function (a) {
+      if (a.getAttribute("data-match-book") === matched) a.hidden = false;
+    });
+  }
+
+  /* ---------- review-copy request: opens the reader's email app ---------- */
+  document.querySelectorAll("form[data-mailto]").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var f = form.elements;
+      var body = "Hi Ashley,\n\nI'd love a review copy of " + f.book.value + ".\n\nName: " + f.name.value +
+        "\nWhere I post: " + f.platform.value + "\nMy page: " + f.link.value +
+        (f.note.value ? "\n\n" + f.note.value : "") + "\n\nThanks!";
+      var href = "mailto:" + form.getAttribute("data-mailto") + "?subject=" +
+        encodeURIComponent("Review copy request: " + f.book.value) + "&body=" + encodeURIComponent(body);
+      track("Creator Request", { book: f.book.value, platform: f.platform.value });
+      var note = form.querySelector(".req-note");
+      if (note) note.hidden = false;
+      window.location.href = href;
+    });
+  });
+
   /* ---------- outbound click tracking ---------- */
   document.addEventListener("click", function (e) {
     var link = e.target.closest("a[data-track]");

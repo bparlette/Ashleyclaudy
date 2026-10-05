@@ -99,6 +99,7 @@
     var slug = winner();
     barEl.style.width = "100%";
     track("Quiz Completed", { result: slug });
+    try { localStorage.setItem("ac_quiz", slug); } catch (e) {}
     showResult(slug);
   }
 

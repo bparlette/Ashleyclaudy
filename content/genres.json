@@ -1,0 +1,108 @@
+{
+  "pages": [
+    {
+      "slug": "street-racing-motorcycle-club-romance",
+      "label": "Street racing & MC",
+      "accent": "blue",
+      "meta_title": "Street Racing & Motorcycle Club Romance · Ashley Claudy",
+      "meta_description": "Street racing and motorcycle club romance by Ashley Claudy. Crowns & Chaos starts with Ride, a standalone second-chance romance. Read free in Kindle Unlimited.",
+      "kicker": "Crowns & Chaos",
+      "h1": "Street racing & motorcycle club",
+      "h1_serif": "romance.",
+      "intro": [
+        "Crowns & Chaos is Ashley Claudy's world of illegal street racing, ruthless motorcycle clubs, and mafia alliances, all colliding in one town. Every book is a standalone romance, so you can start with Ride and meet the world the way its characters do.",
+        "In Ride, Evelynn Marsano comes home after a year away to find that very little has changed. Her brother still rules the underground racing scene, and the boy who makes her heart race, Weston Burke, is back in town to set up a few street bike races. Getting involved with his sponsor's little sister was never part of his plan."
+      ],
+      "books": ["ride", "wreck"],
+      "faq": [
+        {"q": "Do I have to read Crowns & Chaos in order?", "a": "No. Each book is a standalone romance set in the same world. Ride is Book 1 and a good place to start."},
+        {"q": "How long is Ride?", "a": "Ride is 556 pages. It is included with Kindle Unlimited and also available as a paperback."},
+        {"q": "When does Wreck come out?", "a": "Wreck, Crowns & Chaos Book 2, releases December 31, 2026. You can preorder it on Kindle now and it will land on your device on release day."},
+        {"q": "Who are these books for?", "a": "They are New Adult romance for readers 18 and older."}
+      ]
+    },
+    {
+      "slug": "college-football-romance",
+      "label": "College football",
+      "accent": "gold",
+      "meta_title": "College Football Romance: Hustle · Ashley Claudy",
+      "meta_description": "Hustle by Ashley Claudy is a standalone college football romance with a fresh start, campus royalty, and friends to lovers. Read free in Kindle Unlimited or listen on Audible.",
+      "kicker": "Standalone",
+      "h1": "College football",
+      "h1_serif": "romance.",
+      "intro": [
+        "Hustle takes place at South Eastern University, where the football players are royalty and Andrew Fayden is king. It is a standalone, so there is nothing to catch up on.",
+        "College was supposed to be Brook's chance to escape the rumors and the harassment that plagued her at home, but she hadn't planned on meeting Andrew Fayden. He is the definition of unavailable, and his popularity makes it hard to keep a low profile, something she needs if she doesn't want to be pulled back into the drama of her past."
+      ],
+      "books": ["hustle"],
+      "faq": [
+        {"q": "Is Hustle a standalone?", "a": "Yes. Hustle is a complete story with no cliffhanger, and you do not need to read anything else first."},
+        {"q": "How long is Hustle?", "a": "Hustle is 470 pages. It is available on Kindle (free with Kindle Unlimited), in paperback, and as an audiobook."},
+        {"q": "Is there an audiobook?", "a": "Yes. The Hustle audiobook is narrated by Vanessa Moyen and published by Podium Audio on Audible."},
+        {"q": "How many readers have rated Hustle?", "a": "More than 9,500 readers have rated Hustle on Goodreads."}
+      ]
+    },
+    {
+      "slug": "boxing-romance",
+      "label": "Boxing & danger",
+      "accent": "red",
+      "meta_title": "Boxing Romance & Romantic Suspense · Ashley Claudy",
+      "meta_description": "Outside the Ropes is Ashley Claudy's boxing romantic suspense trilogy: a foster-care survivor, a tattooed star fighter, and danger she can't punch her way out of.",
+      "kicker": "Outside the Ropes trilogy",
+      "h1": "Boxing romance &",
+      "h1_serif": "romantic suspense.",
+      "intro": [
+        "Outside the Ropes is a dark romantic suspense trilogy about a fighter who learned to survive long before she learned to box. Read the three books in order, or binge the complete series as one box set of 1,162 pages.",
+        "Regan Sommers spent her life fighting: foster parents, kids in the group home, classmates. Now she fights for money in the ring, and from the first punch she is addicted. Every addiction has a price, and this one is the gym's star boxer, Gage Lawson, a tattooed package with demands that are more than she can handle."
+      ],
+      "books": ["outside-the-ropes", "inside-danger", "otherside-of-fear"],
+      "faq": [
+        {"q": "What order do I read Outside the Ropes in?", "a": "Outside the Ropes (Book 1), Inside Danger (Book 2), then OtherSide of Fear (Book 3). The complete series is also sold as one box set."},
+        {"q": "Are there content warnings?", "a": "Yes. The books contain mature content including drugs, sex, abuse, and explicit language that may be upsetting for some readers."},
+        {"q": "Are the audiobooks available?", "a": "Yes. The trilogy audiobooks are narrated by Rebecca Estrella and published by Tantor Audio."},
+        {"q": "Is it free with Kindle Unlimited?", "a": "The ebooks are included with Kindle Unlimited. The box set and paperbacks are sold separately."}
+      ]
+    },
+    {
+      "slug": "one-night-stand-romance",
+      "label": "Secrets & money",
+      "accent": "violet",
+      "meta_title": "One-Night-Stand Romance with Family Secrets · Ashley Claudy",
+      "meta_description": "It Goes On by Ashley Claudy: a standalone one-night-stand romance with family secrets, wealth and privilege, and a love triangle. Read free in Kindle Unlimited.",
+      "kicker": "Standalone",
+      "h1": "One-night-stand romance with",
+      "h1_serif": "family secrets.",
+      "intro": [
+        "It Goes On is a standalone about a girl who has just moved for the thirteenth time, at twenty, and a one-night stand that refuses to stay one night.",
+        "Kate has just met a father she knew nothing about, and her mother is a liar. Now the boy from that night is connected to her new family, which makes him impossible to avoid. Getting involved with him would pull her into a love triangle with very little love, in a fast new world of wealth, privilege, and lies."
+      ],
+      "books": ["it-goes-on"],
+      "faq": [
+        {"q": "Is It Goes On a standalone?", "a": "Yes. It is a complete story, so you can start here."},
+        {"q": "How long is it?", "a": "It Goes On is 336 pages, available on Kindle (free with Kindle Unlimited) and in paperback."},
+        {"q": "What tropes does it use?", "a": "One night stand, family secrets, wealth and privilege, and a love triangle."}
+      ]
+    },
+    {
+      "slug": "kindle-unlimited-romance",
+      "label": "Kindle Unlimited",
+      "accent": "blue",
+      "meta_title": "Kindle Unlimited Romance Books · Ashley Claudy",
+      "meta_description": "Every Ashley Claudy ebook is free to read with Kindle Unlimited: street racing, boxing, college football, and family-secrets romance. Find your first read.",
+      "kicker": "Free to read",
+      "h1": "Romance you can read free with",
+      "h1_serif": "Kindle Unlimited.",
+      "intro": [
+        "Every Ashley Claudy ebook is included with Kindle Unlimited, so a subscription lets you read as many of them as you like. They are New Adult romance for readers 18 and older.",
+        "Not sure where to start? Street racers and motorcycle clubs are in Crowns & Chaos. Football is Hustle. Fighters and danger are the Outside the Ropes trilogy, and family secrets are It Goes On. Or take the quiz and we will pick one for you."
+      ],
+      "books": ["ride", "wreck", "hustle", "outside-the-ropes", "inside-danger", "otherside-of-fear", "it-goes-on"],
+      "faq": [
+        {"q": "How do I read these for free?", "a": "Subscribe to Kindle Unlimited on Amazon, then borrow any of the ebooks. You do not need a Kindle device: the free Kindle app works on phones, tablets, and computers."},
+        {"q": "Which Ashley Claudy book should I read first?", "a": "Ride if you like street racing and motorcycle clubs, Hustle for college football, Outside the Ropes for boxing and romantic suspense, and It Goes On for family secrets. The quiz on this site can pick for you."},
+        {"q": "Are the books standalones?", "a": "Ride, Wreck, Hustle, and It Goes On can each be read on their own. Outside the Ropes is a trilogy to read in order."},
+        {"q": "Are paperbacks and audiobooks available?", "a": "Most titles have a paperback, and the Hustle and Outside the Ropes audiobooks are on Audible."}
+      ]
+    }
+  ]
+}

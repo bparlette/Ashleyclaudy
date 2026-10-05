@@ -48,6 +48,24 @@ This regenerates `dist/`, the folder that gets published. Python 3.9 or newer, n
 - **Sharper covers:** the covers are 333 by 500 pixels. Drop in larger versions (around 1000 by 1500) with the same file names. Cover art is the one thing holding the design back, so sharper files make the biggest visual upgrade.
 - **Share cards:** the 1200 by 630 images people see when a link is shared on Facebook, TikTok, iMessage, and X live in `assets/og/`. After changing a cover, title, or tagline, run `node tools/make-share-cards.js`, then rebuild.
 
+## Generated assets and tools
+
+Run these from the repo root, then `python3 build.py`. They need Node, Playwright (`npm i -g playwright && npx playwright install chromium`), and ffmpeg.
+
+| Command | What it makes |
+|---|---|
+| `node tools/make-trailers.js` | A 12-second 1080×1920 trailer, a story image, and a thumbnail for every book in `assets/video/`, built from each book's own hook, tropes, tagline, and cover. Trailers show up on book pages and on the Creators page automatically. Add `ride,wreck` to redo only some books. |
+| `node tools/make-share-cards.js` | The 1200×630 link-share images in `assets/og/`. |
+| `node tools/make-icons.js` | Home-screen icons in `assets/icons/`. |
+
+Re-run the trailer and share-card tools after changing a cover, hook, tagline, or release date. The trailers are silent on purpose: creators add trending sounds in TikTok.
+
+## Search pages and the creator hub
+
+- `content/genres.json` drives five search-targeted pages (street racing and motorcycle club, college football, boxing, one-night-stand, Kindle Unlimited). Each has a short intro, the books, an FAQ with search-engine markup, and a signup. Add a page by adding an entry. Keep answers factual and taken from the books.
+- `creators.html` is the hub for BookTok, Bookstagram, podcast, and blog creators: downloadable trailers and story images, copy-ready captions, a review-copy request form that opens the creator's email app, and press facts. The TikTok follower count is in `content/site.json` under `proof`; update it when it changes.
+- Readers who finish the quiz see "Your quiz match" on the home page the next time they visit.
+
 ## Fan features (add content, rebuild, they appear)
 
 Each of these stays off the site until its content exists, so nothing placeholder ever shows.

@@ -21,6 +21,8 @@ SITE = json.loads((ROOT / "content/site.json").read_text())
 CATALOG = json.loads((ROOT / "content/books.json").read_text())
 FAN = json.loads((ROOT / "content/fan.json").read_text())
 QUIZ = json.loads((ROOT / "content/quiz.json").read_text())
+GENRES = json.loads((ROOT / "content/genres.json").read_text())["pages"]
+GENRE_BY_SLUG = {g["slug"]: g for g in GENRES}
 BOOKS = {b["slug"]: b for b in CATALOG["books"]}
 SERIES = {s["id"]: s for s in CATALOG["series"]}
 
@@ -45,6 +47,11 @@ SHELF = [
 ]
 
 MOODS = dict(SHELF)
+BOOK_GENRE = {}
+for _g in GENRES:
+    if _g["slug"] != "kindle-unlimited-romance":
+        for _b in _g["books"]:
+            BOOK_GENRE.setdefault(_b, _g)
 PLATFORMS = {"tiktok": "TikTok", "instagram": "Instagram"}
 PLAY = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>')
 PAUSE = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>')
@@ -231,8 +238,12 @@ def footer(r):
       <a href="{r}quiz.html">Quiz</a>
       <a href="{r}bonus.html">Bonus chapters</a>
       <a href="{r}books.html#where-to-buy">Where to buy</a>
+      <a href="{r}creators.html">Creators &amp; press</a>
       <a href="{r}links.html">Links</a>
       <a href="{r}index.html#about">About</a>
+    </nav>
+    <nav class="foot-nav foot-explore" aria-label="Explore">
+      {"".join(f'<a href="{r}{g["slug"]}.html">{e(g["label"])}</a>' for g in GENRES)}
     </nav>
     <div class="fine-col">
       <p class="fine">As an Amazon Associate I earn from qualifying purchases.</p>
@@ -321,6 +332,9 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
 <meta name="twitter:image" content="{e(abs_url("assets/" + image))}">
 <meta name="theme-color" content="#09090b">
 <link rel="icon" href="{r}assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{r}assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="{r}manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Ashley Claudy">
 <link rel="preload" href="{r}assets/fonts/bricolage-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{r}assets/fonts/inter-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{r}assets/css/site.css">
@@ -449,17 +463,40 @@ def feed_section():
 </section>"""
 
 
+def trailer_for(book):
+    t = dict(book.get("trailer") or {})
+    mp4 = ROOT / f"assets/video/{book['slug']}.mp4"
+    if not t.get("src") and mp4.exists():
+        t["src"] = f"assets/video/{book['slug']}.mp4"
+        if (ROOT / f"assets/video/{book['slug']}.jpg").exists():
+            t["poster"] = f"assets/video/{book['slug']}.jpg"
+    return t
+
+
 def trailer_section(book, r):
-    t = book.get("trailer") or {}
+    t = trailer_for(book)
     if not t.get("src"):
         return ""
     poster = f"{r}{t['poster']}" if t.get("poster") else f"{r}assets/covers/{book['cover']}"
     cls = "trailer" + ("" if t.get("vertical") is False else " v")
-    return f"""<section class="section" style="padding-block:0 clamp(40px,6vw,72px)" aria-label="{e(book['title'])} trailer">
-  <div class="wrap"><div class="{cls} reveal" data-trailer data-book="{e(book['slug'])}">
-    <video playsinline loop preload="metadata" poster="{e(poster)}" src="{e(r + t['src'])}"></video>
-    <button class="trailer-btn" type="button" aria-label="Play trailer"><span class="trailer-ico">{PLAY}</span><span class="trailer-label">Watch the trailer</span></button>
-  </div></div>
+    sample = ""
+    if book["status"] == "out":
+        sample = out_link(kindle_sample(book["kindle_asin"]), "Read the first chapters", "sample", book["slug"], "btn btn-line")
+    return f"""<section class="theater" aria-label="{e(book['title'])} trailer">
+  <div class="wrap theater-grid">
+    <div class="{cls} reveal" data-trailer data-book="{e(book['slug'])}">
+      <video playsinline loop preload="none" poster="{e(poster)}" src="{e(r + t['src'])}"></video>
+      <button class="trailer-btn" type="button" aria-label="Play trailer"><span class="trailer-ico">{PLAY}</span><span class="sr-only">Watch the trailer</span></button>
+    </div>
+    <div class="theater-copy reveal">
+      <p class="kicker">The trailer</p>
+      <h2>{e(book['hook'])}</h2>
+      <div class="cta-row" data-dock-watch>
+        {out_link(amazon(book["kindle_asin"]), f"{e(kindle_label(book))} {ARROW}", "kindle-trailer", book["slug"], "btn btn-glow")}
+        {sample}
+      </div>
+    </div>
+  </div>
 </section>"""
 
 
@@ -570,6 +607,199 @@ def quiz_band():
 </section>"""
 
 
+def follow_band():
+    sp = SITE.get("proof", [])
+    count = next((p["figure"] for p in sp if "TikTok" in p["label"]), "")
+    handle = next((x["handle"] for x in SITE["social"] if x["name"] == "TikTok"), "@ashley.claudy")
+    big = (f'<div class="fb-count"><b>{e(count)}</b><span>followers on TikTok</span></div>' if count else "")
+    buttons = (out_link(social_url("TikTok"), f"Follow {e(handle)} {ARROW}", "social-tiktok", "", "btn btn-glow")
+               + out_link(social_url("Instagram"), "Follow on Instagram", "social-instagram", "", "btn btn-line"))
+    return f"""<section class="section" id="follow" style="padding-block:0 clamp(72px,11vw,136px)" aria-label="Follow Ashley">
+  <div class="wrap">
+    <div class="followband reveal">
+      <div class="fb-copy">
+        <p class="kicker">Follow along</p>
+        <h2>{e(handle)}</h2>
+        <p>Book talk and new-release news, straight from Ashley.</p>
+        <div class="cta-row">{buttons}</div>
+      </div>
+      {big}
+    </div>
+  </div>
+</section>"""
+
+
+def match_links():
+    out = ""
+    for slug in QUIZ["order"]:
+        b = BOOKS[slug]
+        out += f'<a class="match" data-match-book="{slug}" href="books/{slug}.html" hidden>Your quiz match: <b>{e(b["title"])}</b> {ARROW}</a>'
+    return out
+
+
+def hashtags(book):
+    tags = ["#booktok", "#romancebooks", "#newadultromance"]
+    if book.get("kindle_unlimited"):
+        tags.append("#kindleunlimited")
+    for t in book["tropes"]:
+        if t in ("Standalone", "Preorder", "Series finale") or t.startswith("Book ") or "#" in t:
+            continue
+        tag = "#" + re.sub(r"[^a-z0-9]", "", t.lower())
+        if tag not in tags:
+            tags.append(tag)
+    return " ".join(tags[:8])
+
+
+def caption(book):
+    return f"{book['hook']}\n\n{book['title']} by @ashley.claudy. {kindle_label(book)}. Link in bio.\n\n{hashtags(book)}"
+
+
+def build_creators():
+    email = SITE.get("contact_email", "")
+    kit = ""
+    for slug in ["ride", "wreck", "hustle", "outside-the-ropes", "inside-danger", "otherside-of-fear", "it-goes-on"]:
+        b = BOOKS[slug]
+        mp4 = ROOT / f"assets/video/{slug}.mp4"
+        if not mp4.exists():
+            continue
+        mb = mp4.stat().st_size / 1e6
+        kit += f"""<article class="kit-card t-{b['accent']} reveal">
+  <img src="assets/video/{slug}-story.jpg" alt="{e(b['title'])} story image preview" width="270" height="480" loading="lazy">
+  <p class="kicker">{e(short_label(b))}</p>
+  <h3>{e(b['title'])}</h3>
+  <a class="btn btn-glow btn-sm" href="assets/video/{slug}.mp4" download data-track="kit-video" data-book="{slug}">Video · {mb:.1f} MB</a>
+  <a class="btn btn-line btn-sm" href="assets/video/{slug}-story.jpg" download data-track="kit-story" data-book="{slug}">Story image</a>
+</article>"""
+    caps = ""
+    for slug in ["ride", "wreck", "hustle", "outside-the-ropes", "it-goes-on"]:
+        b = BOOKS[slug]
+        text = caption(b)
+        caps += f"""<article class="cap-card t-{b['accent']} reveal">
+  <p class="kicker">{e(b['title'])}</p>
+  <p class="cap-text">{e(text)}</p>
+  <button class="btn btn-line btn-sm" type="button" data-copy="{e(text)}">Copy caption</button>
+</article>"""
+    book_opts = "".join(f'<option value="{e(b["title"])}">{e(b["title"])}{" (preorder)" if b["status"] == "preorder" else ""}</option>' for b in CATALOG["books"])
+    platform_opts = "".join(f"<option>{p}</option>" for p in ["TikTok", "Instagram", "YouTube", "Blog", "Podcast", "Goodreads", "Other"])
+    bio = "".join(f"<p>{e(p)}</p>" for p in SITE["bio"])
+    followers = next((p["figure"] for p in SITE.get("proof", []) if "TikTok" in p["label"]), "")
+    facts = [("Genre", "New Adult romance (18+)"), ("Books", f"{len(CATALOG['books'])} novels plus the Outside the Ropes box set"),
+             ("Audiobooks", "Hustle and the Outside the Ropes trilogy on Audible"), ("Based in", SITE.get("location", ""))]
+    if followers:
+        facts.insert(1, ("TikTok", f"{SITE['social'][0]['handle']} · {followers} followers"))
+    facts_html = "".join(f"<div><dt>{e(k)}</dt><dd>{e(v)}</dd></div>" for k, v in facts if v)
+    body = f"""<section class="hero t-blue">
+  {hero_bg("assets/covers/ride.jpg")}
+  <div class="wrap page-head">
+    <p class="kicker">Creators &amp; press</p>
+    <h1>Make something with <span class="serif" style="color:var(--glow)">Ashley's books.</span></h1>
+    <p class="lede">BookTok, Bookstagram, podcast, blog? Grab ready-made trailers and story images, copy a caption, and ask for a review copy. Tag @ashley.claudy and say hi.</p>
+  </div>
+</section>
+<section class="section" id="kit" aria-labelledby="kit-title">
+  <div class="wrap"><div class="sec-head reveal"><p class="kicker">The kit</p><h2 class="h2" id="kit-title">Trailers and stories, <span class="serif">ready to post.</span></h2>
+    <p>Vertical 1080×1920 videos and story images for every book, built from each book's own hook, tropes, and cover. Free to use when you talk about the books.</p></div></div>
+  <div class="shelf kit" tabindex="0" aria-label="Download kit">{kit}</div>
+</section>
+<section class="section" style="padding-top:0" id="captions" aria-labelledby="cap-title">
+  <div class="wrap"><div class="sec-head reveal"><p class="kicker">Captions</p><h2 class="h2" id="cap-title">Start with <span class="serif">these.</span></h2>
+    <p>Suggested captions with tropes and hashtags. Change them up so they sound like you.</p></div>
+    <div class="caps">{caps}</div></div>
+</section>
+<section class="section" style="padding-top:0" id="request" aria-labelledby="req-title">
+  <div class="wrap">
+    <div class="crew reveal" style="grid-template-areas:'copy' 'form'">
+      <div class="crew-copy">
+        <p class="kicker">Review copies</p>
+        <h2 id="req-title">Ask for a <span class="serif">copy.</span></h2>
+        <p class="lede">Tell Ashley where you post and which book you want. This opens your email app with the request filled in.</p>
+        <p class="fine">If you get a free copy, please say so in your post (for example #gifted). Reviews can't be exchanged for payment or rewards, and honest opinions are always welcome.</p>
+      </div>
+      <div class="signup-wrap">
+        <form class="req" data-mailto="{e(email)}">
+          <label>Your name<input class="input" name="name" required autocomplete="name"></label>
+          <label>Link to your page<input class="input" name="link" required placeholder="tiktok.com/@you"></label>
+          <label>Where you post<select class="input" name="platform">{platform_opts}</select></label>
+          <label>Which book<select class="input" name="book">{book_opts}</select></label>
+          <label>Anything else<textarea class="input" name="note" rows="3"></textarea></label>
+          <button class="btn btn-glow" type="submit">Open my email {ARROW}</button>
+          <p class="signup-note req-note" role="status" hidden>If your email app didn't open, write to <b>{e(email)}</b>.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" style="padding-top:0" id="press" aria-labelledby="press-title">
+  <div class="wrap about-grid">
+    <div class="reveal"><p class="kicker" id="press-title" style="margin-bottom:22px">Press facts</p><div class="about-copy">{bio}</div></div>
+    <div class="reveal"><dl class="spec">{facts_html}</dl>
+      <div style="margin-top:24px">{socials()}</div>
+      <p class="fine" style="margin-top:18px">Interviews, podcasts, and collaborations: <b>{e(email)}</b></p>
+    </div>
+  </div>
+</section>"""
+    return page("creators.html", "Creators & Press Kit · Ashley Claudy",
+                "Trailers, story images, captions, review-copy requests, and press facts for BookTok, Bookstagram, podcast, and blog creators covering Ashley Claudy's books.",
+                body, image="og/home.jpg", current="creators.html")
+
+
+def build_genre(g):
+    r = ""
+    books = [BOOKS[s] for s in g["books"]]
+    first = books[0]
+    intro = "".join(f'<p class="lede">{e(p)}</p>' for p in g["intro"])
+    primary_book = next((b for b in books if b["status"] == "out"), first)
+    if len(books) == 1:
+        b = first
+        tags = "".join(f"<li>{e(t)}</li>" for t in b["tropes"])
+        listing = f"""<article class="res t-{b['accent']}"><div class="res-grid">
+  <a class="res-cover reveal" href="books/{b['slug']}.html"><img class="cover-art" src="assets/covers/{e(b['cover'])}" alt="{e(b['title'])} by Ashley Claudy, cover" width="333" height="500" loading="lazy"></a>
+  <div class="res-copy reveal">
+    <p class="kicker">{e(series_label(b))} · {e(b.get('pages', ''))} pages</p>
+    <h2 class="res-title">{e(b['title'])}</h2>
+    <p class="lede">{e(b['hook'])}</p>
+    <ul class="tags">{tags}</ul>
+    <div class="cta-row">{out_link(amazon(b['kindle_asin']), f"{e(kindle_label(b))} {ARROW}", "kindle-genre", b['slug'], "btn btn-glow")}<a class="btn btn-line" href="books/{b['slug']}.html">See the book</a></div>
+  </div></div></article>"""
+    else:
+        cards = "".join(
+            shelf_card(b, r, short_label(b), badge="Preorder" if b["status"] == "preorder" else "", delay=round(i * 0.06, 2))
+            for i, b in enumerate(books))
+        listing = f'<div class="grid-books">{cards}</div>'
+    faq = "".join(f'<details class="faq-item reveal"><summary>{e(f["q"])}</summary><p>{e(f["a"])}</p></details>' for f in g["faq"])
+    others = "".join(f'<a class="chip-link" href="{o["slug"]}.html">{e(o["label"])}</a>' for o in GENRES if o["slug"] != g["slug"])
+    ld = [
+        {"@context": "https://schema.org", "@type": "FAQPage",
+         "mainEntity": [{"@type": "Question", "name": f["q"], "acceptedAnswer": {"@type": "Answer", "text": f["a"]}} for f in g["faq"]]},
+        {"@context": "https://schema.org", "@type": "CollectionPage", "name": g["meta_title"], "url": abs_url(f"{g['slug']}.html"),
+         "hasPart": [{"@type": "Book", "name": b["title"], "url": abs_url(f"books/{b['slug']}.html"),
+                      "author": {"@type": "Person", "name": SITE["author"]}} for b in books]},
+    ]
+    body = f"""<section class="hero t-{g['accent']}">
+  {hero_bg("assets/covers/" + first["cover"])}
+  <div class="wrap page-head">
+    <p class="kicker">{e(g['kicker'])}</p>
+    <h1>{e(g['h1'])} <span class="serif" style="color:var(--glow)">{e(g['h1_serif'])}</span></h1>
+    {intro}
+    <div class="cta-row" style="margin-top:8px;max-width:520px">{out_link(amazon(primary_book['kindle_asin']), f"{e(short_cta(primary_book))} {ARROW}", "kindle-genre", primary_book['slug'], "btn btn-glow")}<a class="btn btn-line" href="quiz.html">Not sure? Take the quiz</a></div>
+  </div>
+</section>
+<section class="series t-{g['accent']}" aria-label="Books"><div class="wrap">{listing}</div></section>
+<section class="series" aria-labelledby="faq-title"><div class="wrap">
+  <div class="series-head reveal"><p class="kicker">Good to know</p><h2 id="faq-title">Questions</h2></div>
+  <div class="faq">{faq}</div>
+</div></section>
+<section class="series"><div class="wrap">
+  <div class="series-head reveal"><p class="kicker">More worlds</p><h2>Keep exploring</h2></div>
+  <div class="chip-links reveal">{others}<a class="chip-link" href="quiz.html">Take the quiz</a><a class="chip-link" href="books.html">All books</a></div>
+</div></section>
+<section class="section" id="join" aria-label="Join the Crew"><div class="wrap reveal">{crew("genre")}</div></section>"""
+    dock = {"label": short_cta(primary_book), "url": amazon(primary_book["kindle_asin"]), "store": "kindle-dock", "book": primary_book["slug"], "sec": "#join"}
+    return page(f"{g['slug']}.html", g["meta_title"], g["meta_description"], body,
+                image="og/home.jpg" if len(books) > 1 else f"og/{first['slug']}.jpg",
+                jsonld=ld, theme=g["accent"], dock=dock)
+
+
 # ---------- pages ----------
 
 def build_home():
@@ -600,6 +830,7 @@ def build_home():
         <li>{STAR}<b>{e(ride['proof'])}</b></li>
         <li>{ride['pages']} pages</li>
       </ul>
+      {match_links()}
     </div>
   </div>
 </section>"""
@@ -664,13 +895,13 @@ def build_home():
     <div class="about-copy reveal">
       {"".join(f"<p>{e(p)}</p>" for p in bio[1:])}
       {socials()}
-      <p class="fine">Made fan art, a reaction, or an edit? Tag @ashley.claudy on TikTok or email it to be featured here.</p>
+      <p class="fine">Made fan art, a reaction, or an edit? Tag @ashley.claudy on TikTok or email it to be featured here. Posting about the books? <a href="creators.html">Grab the creator kit</a>.</p>
       {contact}
     </div>
   </div>
 </section>"""
 
-    body = hero + trope_marquee() + shelf + quiz_band() + feed_section() + preorder + wall_section() + join + about
+    body = hero + trope_marquee() + shelf + quiz_band() + (feed_section() or follow_band()) + preorder + wall_section() + join + about
     dock = {"label": short_cta(ride), "url": amazon(ride["kindle_asin"]), "store": "kindle-dock", "book": "ride", "sec": "#join"}
     return page("index.html", "Ashley Claudy · New Adult Romance Author", SITE["meta_description"], body,
                 image="og/home.jpg", jsonld=[person_ld()], dock=dock)
@@ -823,6 +1054,8 @@ def build_book(book):
         for i, n in enumerate(next_up[:4])
     )
 
+    g = BOOK_GENRE.get(slug)
+    genre_link = (f'<p class="reveal"><a class="link" href="{r}{g["slug"]}.html">More {e(g["label"].lower())} romance {ARROW}</a></p>' if g else "")
     join_headline = 'See the Wreck cover <span class="serif">first.</span>' if slug == "wreck" else None
     body = f"""<section class="bk">
   {hero_bg(cover_src)}
@@ -853,6 +1086,7 @@ def build_book(book):
       <div class="blurb reveal">{blurb}</div>
       {characters_block(book)}
       {tags}
+      {genre_link}
       {note}
     </div>
     <div class="col col-b reveal">
@@ -1034,10 +1268,13 @@ def build(out: Path):
         "bonus.html": build_bonus(),
         "links.html": build_links(),
         "quiz.html": build_quiz(),
+        "creators.html": build_creators(),
         "404.html": build_404(),
     }
     for book in CATALOG["books"]:
         pages[f"books/{book['slug']}.html"] = build_book(book)
+    for g in GENRES:
+        pages[f"{g['slug']}.html"] = build_genre(g)
     for path, text in pages.items():
         target = out / path
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -1050,6 +1287,11 @@ def build(out: Path):
     )
     if wreck()["status"] == "preorder":
         (out / "wreck-release.ics").write_text(wreck_ics())
+    manifest = {"name": "Ashley Claudy", "short_name": "Ashley Claudy", "description": SITE["tagline"], "start_url": "/index.html",
+                "display": "standalone", "background_color": "#09090b", "theme_color": "#09090b",
+                "icons": [{"src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                          {"src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}]}
+    (out / "manifest.webmanifest").write_text(json.dumps(manifest, indent=2))
     (out / "sitemap.xml").write_text(
         f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n')
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {abs_url('sitemap.xml')}\n")
