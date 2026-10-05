@@ -38,6 +38,8 @@
 - [ ] For a sale (Countdown Deal, BookBub feature): fill `site.json` → `promo`, rebuild, deploy
 
 ## Content upgrades (when available)
+- [ ] Facebook reader group (on her Linktree): paste its link and name into `site.json` → `facebook_group`, rebuild. It then shows after signup, on the links page, and in the social lists
+- [ ] Hustle Facebook reel (caption: "Warning: this 'Hero' will make you mad before he makes you fall in love… HUSTLE"): need the link
 - [ ] Facebook: send the link to the Hustle promo reel and run `python3 tools/add-post.py <link> --caption "..." --thumb frame.jpg` to add it to the feed
 - [ ] Revive Instagram by posting her TikToks as Reels for a month; if it picks up, un-hide it and add posts to the feed
 - [x] Social feed live with her top TikTok posts (add more with `python3 tools/add-post.py`)

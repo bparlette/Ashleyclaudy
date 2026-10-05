@@ -223,12 +223,21 @@ def header(r, current=""):
 </header>"""
 
 
+def fb_group():
+    g = SITE.get("facebook_group") or {}
+    return (g.get("url", ""), g.get("name") or "Reader group")
+
+
 def socials():
     items = "".join(
         f'<li><a href="{e(s["url"])}" target="_blank" rel="noopener" data-track="social-{e(s["name"].lower())}">'
         f'{e(s["name"])} <small>{e(s["handle"])}</small></a></li>'
         for s in SITE["social"] if not s.get("hidden")
     )
+    gurl, gname = fb_group()
+    if gurl:
+        items += (f'<li><a href="{e(gurl)}" target="_blank" rel="noopener" data-track="social-facebook-group">'
+                  f'Reader group <small>{e(gname)}</small></a></li>')
     return f'<ul class="socials">{items}</ul>'
 
 
@@ -295,6 +304,7 @@ def crew_form(form_id, book=""):
       <div class="row">
         <a class="btn btn-line btn-sm" href="{e(social_url("TikTok"))}" target="_blank" rel="noopener" data-track="social-tiktok">Follow on TikTok</a>
         <a class="btn btn-line btn-sm" href="{e(social_url("Facebook"))}" target="_blank" rel="noopener" data-track="social-facebook">Follow on Facebook</a>
+        {f'<a class="btn btn-glow btn-sm" href="{e(fb_group()[0])}" target="_blank" rel="noopener" data-track="social-facebook-group">Join the reader group</a>' if fb_group()[0] else ""}
       </div>
     </div>
   </div>"""
@@ -1502,6 +1512,8 @@ def build_links():
     if hustle.get("audiobook"):
         rows.append(lb_row(hustle["audiobook"]["url"], "Hustle on audio", "Audible · college football romance",
                            cover="assets/covers/hustle.jpg", theme="gold", store="audiobook", book="hustle"))
+    if fb_group()[0]:
+        rows.append(lb_row(fb_group()[0], "Join the reader group", fb_group()[1] + " on Facebook", icon=ICON_MAIL, store="social-facebook-group"))
     rows.append(lb_row("books.html", "All the books", "Reading order and where to buy", icon=ICON_BOOKS, external=False))
     body = f"""<section class="solo t-blue">
   {hero_bg("assets/covers/ride.jpg")}

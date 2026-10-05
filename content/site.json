@@ -111,5 +111,10 @@
   },
   "featured_book": "",
   "privacy_updated": "October 5, 2026",
-  "_help_new": "amazon_tags: Amazon Associates tracking ID per store (leave blank to send visitors to that store without a tag). amazon_tracking_ids: tracking ID per traffic source (utm_source), US store only, so Associates reports show which channel sells. promo: turn on the sale-day banner with a live countdown. featured_book: force a book into the home-page hero (blank = automatic)."
+  "_help_new": "amazon_tags: Amazon Associates tracking ID per store (leave blank to send visitors to that store without a tag). amazon_tracking_ids: tracking ID per traffic source (utm_source), US store only, so Associates reports show which channel sells. promo: turn on the sale-day banner with a live countdown. featured_book: force a book into the home-page hero (blank = automatic).",
+  "facebook_group": {
+    "url": "",
+    "name": "",
+    "note": "Her Facebook reader group (listed on her Linktree). Paste its link here and rebuild: it then appears after signup, on the links page, and in the social lists."
+  }
 }
