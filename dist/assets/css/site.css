@@ -570,3 +570,24 @@ button.link{background:none;border-top:0;border-inline:0;cursor:pointer;font-fam
 .post.has-img .post-go{z-index:2;left:auto;right:14px;top:auto;bottom:16px;width:52px;height:52px;margin:0}
 .post.has-img .post-go .ico{width:22px;height:22px}
 .post-play .post-badge{position:static}
+
+/* ---------- reviews slider ---------- */
+.rv-track{display:flex;gap:16px;overflow-x:auto;padding:6px var(--gutter) 24px;scroll-snap-type:x mandatory;scroll-padding-inline:var(--gutter);scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.rv-track::-webkit-scrollbar{display:none}
+@media(min-width:1100px){.rv-track{max-width:var(--max);margin-inline:auto}}
+.rv-card{flex:0 0 min(84vw,400px);scroll-snap-align:start;margin:0;display:grid;grid-template-rows:auto 1fr auto;gap:18px;padding:26px;border-radius:26px;border:1px solid var(--line-2);background:radial-gradient(90% 70% at 100% 0%,rgba(var(--glow-rgb),.16),transparent 62%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+.rv-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rv-top .stars{font-size:18px}
+.rv-book{font:700 11px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--glow)}
+.rv-card blockquote{margin:0;font:italic 400 clamp(23px,5.6vw,29px)/1.2 var(--f-serif);text-wrap:pretty}
+.rv-card figcaption{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:14px;color:var(--muted)}
+.rv-card figcaption b{color:var(--paper);font-weight:650}
+.rv-link{margin-left:auto;font:600 12px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--paper);text-decoration:none;border-bottom:1px solid var(--line-2);padding-bottom:2px}
+.rv-link:hover{color:var(--glow);border-color:var(--glow)}
+.rv-ctl{display:flex;align-items:center;gap:16px;max-width:var(--max)}
+.rv-btn{flex:none;width:48px;height:48px;border-radius:50%;border:1px solid var(--line-2);background:rgba(255,255,255,.05);color:var(--paper);font-size:20px;cursor:pointer;transition:background .25s,opacity .25s}
+.rv-btn:hover:not(:disabled){background:rgba(255,255,255,.12)}
+.rv-btn:disabled{opacity:.3;cursor:default}
+.rv-prog{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+.rv-prog i{display:block;height:100%;width:20%;border-radius:4px;background:var(--glow);transition:transform .2s linear;transform-origin:left}
+.rv-note{margin-top:18px}

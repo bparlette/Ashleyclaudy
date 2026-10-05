@@ -24,6 +24,7 @@ QUIZ = json.loads((ROOT / "content/quiz.json").read_text())
 GENRES = json.loads((ROOT / "content/genres.json").read_text())["pages"]
 GENRE_BY_SLUG = {g["slug"]: g for g in GENRES}
 AFTER = json.loads((ROOT / "content/after.json").read_text())
+REVIEWS = json.loads((ROOT / "content/reviews.json").read_text())["reviews"]
 BOOKS = {b["slug"]: b for b in CATALOG["books"]}
 SERIES = {s["id"]: s for s in CATALOG["series"]}
 
@@ -694,6 +695,48 @@ def build_privacy():
     return page("privacy.html", "Privacy Policy · Ashley Claudy", "How Ashley Claudy's website handles your email address, analytics, and browser storage.", body)
 
 
+def reviews_section(slugs=None, *, title='Straight from <span class="serif">Goodreads.</span>', top_pad=True):
+    items = [r for r in REVIEWS if r["book"] in BOOKS and (not slugs or r["book"] in slugs)]
+    if slugs and len(items) < 2:
+        return ""
+    if not items:
+        return ""
+    # mix the books so the slider doesn't show one title in a row
+    groups = {}
+    for r in items:
+        groups.setdefault(r["book"], []).append(r)
+    mixed, queues = [], list(groups.values())
+    while any(queues):
+        for q in queues:
+            if q:
+                mixed.append(q.pop(0))
+    cards = ""
+    for i, r in enumerate(mixed):
+        b = BOOKS[r["book"]]
+        cards += f"""<figure class="rv-card t-{b['accent']}">
+  <div class="rv-top">{stars_html(r['rating'])}<span class="rv-book">{e(b['title'])}</span></div>
+  <blockquote>“{e(r['text'])}”</blockquote>
+  <figcaption><b>{e(r['name'])}</b><span>Goodreads review</span>{out_link(r['source_url'], "Read reviews", "review-source", r['book'], "rv-link")}</figcaption>
+</figure>"""
+    email = SITE.get("contact_email", "")
+    pad = "" if top_pad else ' style="padding-top:0"'
+    return f"""<section class="section reviews" aria-labelledby="rv-title"{pad}>
+  <div class="wrap"><div class="sec-head reveal">
+    <p class="kicker">Readers say</p>
+    <h2 class="h2" id="rv-title">{title}</h2>
+  </div></div>
+  <div class="rv reveal" data-reviews>
+    <div class="rv-track" tabindex="0" aria-label="Reader reviews">{cards}</div>
+    <div class="wrap rv-ctl">
+      <button class="rv-btn" type="button" data-rv="prev" aria-label="Previous review">←</button>
+      <div class="rv-prog" aria-hidden="true"><i></i></div>
+      <button class="rv-btn" type="button" data-rv="next" aria-label="Next review">→</button>
+    </div>
+  </div>
+  <div class="wrap"><p class="fine rv-note">Excerpts from public Goodreads reviews, quoted as written, with each reviewer's display name. Want yours taken down? Email {e(email)}.</p></div>
+</section>"""
+
+
 # ---------- fan features (each one renders only when its content exists) ----------
 
 def embed_url(post):
@@ -1059,6 +1102,7 @@ def build_genre(g):
   </div>
 </section>
 <section class="series t-{g['accent']}" aria-label="Books"><div class="wrap">{listing}</div></section>
+{reviews_section(g["books"], title='What readers <span class="serif">say.</span>')}
 <section class="series" aria-labelledby="faq-title"><div class="wrap">
   <div class="series-head reveal"><p class="kicker">Good to know</p><h2 id="faq-title">Questions</h2></div>
   <div class="faq">{faq}</div>
@@ -1185,7 +1229,7 @@ def build_home():
   </div>
 </section>"""
 
-    body = hero + trope_marquee() + shelf + quiz_band() + (feed_section() or follow_band()) + preorder + wall_section() + join + about
+    body = hero + trope_marquee() + shelf + reviews_section() + quiz_band() + (feed_section() or follow_band()) + preorder + wall_section() + join + about
     dock = {"label": short_cta(feat), "url": amazon(feat["kindle_asin"]), "store": "kindle-dock", "book": fslug, "sec": "#join"}
     return page("index.html", "Ashley Claudy · New Adult Romance Author", SITE["meta_description"], body,
                 image="og/home.jpg", jsonld=[person_ld()], dock=dock)
@@ -1367,6 +1411,7 @@ def build_book(book):
   </div>
 </section>
 {trailer_section(book, r)}
+{reviews_section([slug], title=f'Readers on <span class="serif">{e(book["title"])}.</span>', top_pad=False)}
 <section class="section" style="padding-top:clamp(24px,5vw,56px)">
   <div class="wrap story">
     <div class="col">

@@ -1,0 +1,157 @@
+{
+  "_help": "Short excerpts from public Goodreads reviews, word for word, with the reviewer's display name. Check they are still up with: python3 tools/pull-reviews.py --check . Remove any entry a reviewer asks to have taken down.",
+  "reviews": [
+    {
+      "book": "hustle",
+      "name": "Michelle",
+      "rating": 5,
+      "text": "I couldn't put my kindle down because I needed to know what was really going on.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/28083494-hustle"
+    },
+    {
+      "book": "hustle",
+      "name": "Jan",
+      "rating": 5,
+      "text": "There was no time for dreaming but for the life of me I couldn't stop thinking about this book.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/28083494-hustle"
+    },
+    {
+      "book": "hustle",
+      "name": "Melluvsbooks",
+      "rating": 4,
+      "text": "I just finished my reread and I loved it!",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/28083494-hustle"
+    },
+    {
+      "book": "hustle",
+      "name": "Sarah",
+      "rating": 5,
+      "text": "So while I thought it was a mistake to buy this book, in the end it was a great decision.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/28083494-hustle"
+    },
+    {
+      "book": "ride",
+      "name": "BeaC",
+      "rating": 4,
+      "text": "From the very first page, I was hooked by the tension and the raw journey Evie is on.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/245993989-ride"
+    },
+    {
+      "book": "ride",
+      "name": "Katie",
+      "rating": 4,
+      "text": "I love Evie and West, and the angst and tension between them was unreal, making everything that much hotter.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/245993989-ride"
+    },
+    {
+      "book": "ride",
+      "name": "Kimberly",
+      "rating": 5,
+      "text": "This book had me hooked from start to finish.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/245993989-ride"
+    },
+    {
+      "book": "ride",
+      "name": "Stacey",
+      "rating": 4,
+      "text": "From the first few chapters, you can feel that this isn’t just a romance, it’s a story about healing, trust, and the messy, beautiful process of growth.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/245993989-ride"
+    },
+    {
+      "book": "ride",
+      "name": "Johanna",
+      "rating": 5,
+      "text": "Plot was intriguing and intense and exciting and well paced.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/245993989-ride"
+    },
+    {
+      "book": "outside-the-ropes",
+      "name": "Michele",
+      "rating": 5,
+      "text": "I always love it when I find a book that I just can’t put down.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/23621981-outside-the-ropes"
+    },
+    {
+      "book": "outside-the-ropes",
+      "name": "Shannon",
+      "rating": 4,
+      "text": "So many intense feelings and emotions were going through me as I read, I was completely sucked into Regan's world.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/23621981-outside-the-ropes"
+    },
+    {
+      "book": "outside-the-ropes",
+      "name": "Karen Lee",
+      "rating": 5,
+      "text": "Anyone looking for a good book with a great story, this is for you.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/23621981-outside-the-ropes"
+    },
+    {
+      "book": "inside-danger",
+      "name": "Shannon",
+      "rating": 5,
+      "text": "I am completely hooked on this series, Ashley has created such fantastic characters I cannot wait to see what is in store for them in OtherSide Of Fear, that little tease at the end of this book was amazing!",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/23654149-inside-danger"
+    },
+    {
+      "book": "inside-danger",
+      "name": "Jessika",
+      "rating": 5,
+      "text": "Another phenomenal read I’m obsessed with this series.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/23654149-inside-danger"
+    },
+    {
+      "book": "otherside-of-fear",
+      "name": "Jessika",
+      "rating": 5,
+      "text": "It’s brilliant, thrilling, beautiful, and terrifying all at the same time.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/25239509-otherside-of-fear"
+    },
+    {
+      "book": "otherside-of-fear",
+      "name": "Angela",
+      "rating": 5,
+      "text": "This is a terrific ending to an awesome series.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/25239509-otherside-of-fear"
+    },
+    {
+      "book": "it-goes-on",
+      "name": "Laura Lambregts",
+      "rating": 4,
+      "text": "The pace of the story is perfect and I keep turning the pages knowing there's not a boring sentence in the book.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/33287350-it-goes-on"
+    },
+    {
+      "book": "it-goes-on",
+      "name": "2OCC Reviews",
+      "rating": 4,
+      "text": "The writing was really good, I was surprised that this was Ashley Claudy's first novel as she has all the elements of a great writer already.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/33287350-it-goes-on"
+    },
+    {
+      "book": "it-goes-on",
+      "name": "Jennifer Anderson",
+      "rating": 5,
+      "text": "Great book couldn't put it down.",
+      "source": "Goodreads",
+      "source_url": "https://www.goodreads.com/book/show/33287350-it-goes-on"
+    }
+  ]
+}

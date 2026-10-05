@@ -50,7 +50,8 @@
 - [ ] Wreck real cover: replace `assets/covers/wreck.jpg` (same file name), update `blurb`/`tropes`/`hook` in `content/books.json`, regen share cards (`node tools/make-share-cards.js`), rebuild
 - [ ] Wreck release day (Dec 31, 2026): change Wreck's `"status"` from `"preorder"` to `"out"` in `books.json` (announcement bar, countdown, and preorder band disappear on their own)
 - [ ] Sharper covers: current files are 333x500; drop in ~1000x1500 versions with the same file names
-- [ ] Real reader quotes (with permission) into each book's `quotes` list
+- [x] Reviews slider live with 19 verified Goodreads excerpts (`content/reviews.json`); ask the reviewers' permission when you can (short DM: "I'd love to quote your Goodreads review of X on my site, with a link back. OK?"), and remove anyone who says no
+- [ ] Re-run `python3 tools/pull-reviews.py --check` monthly; add Amazon reviews by hand if wanted (Amazon blocks automated reading)
 - [ ] Author photo: square file at `assets/img/ashley.jpg`, then set `author_photo` in `site.json`
 
 ## Working rules for this repo

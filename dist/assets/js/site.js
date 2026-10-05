@@ -493,6 +493,43 @@
     });
   });
 
+  /* ---------- reviews slider: arrows, progress bar, keyboard ---------- */
+  document.querySelectorAll("[data-reviews]").forEach(function (box) {
+    var track = box.querySelector(".rv-track");
+    var prev = box.querySelector('[data-rv="prev"]');
+    var next = box.querySelector('[data-rv="next"]');
+    var bar = box.querySelector(".rv-prog i");
+    if (!track) return;
+    function step() {
+      var card = track.querySelector(".rv-card");
+      return card ? card.getBoundingClientRect().width + 16 : 320;
+    }
+    function update() {
+      var max = track.scrollWidth - track.clientWidth;
+      var pos = max > 0 ? track.scrollLeft / max : 0;
+      if (prev) prev.disabled = track.scrollLeft <= 2;
+      if (next) next.disabled = track.scrollLeft >= max - 2;
+      if (bar) {
+        var view = max > 0 ? track.clientWidth / track.scrollWidth : 1;
+        bar.style.width = Math.max(view, 0.12) * 100 + "%";
+        bar.style.transform = "translateX(" + pos * (1 / Math.max(view, 0.12) - 1) * 100 + "%)";
+      }
+    }
+    function go(dir) {
+      track.scrollBy({ left: dir * step(), behavior: reduceMotion ? "auto" : "smooth" });
+      track.dispatchEvent(new Event("scroll"));
+    }
+    if (prev) prev.addEventListener("click", function () { go(-1); track.focus({ preventScroll: true }); });
+    if (next) next.addEventListener("click", function () { go(1); track.focus({ preventScroll: true }); });
+    track.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") { e.preventDefault(); go(1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); }
+    });
+    track.addEventListener("scroll", function () { window.requestAnimationFrame(update); }, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+  });
+
   /* ---------- outbound click tracking ---------- */
   document.addEventListener("click", function (e) {
     var link = e.target.closest("a[data-track]");
