@@ -8,36 +8,36 @@ import argparse
 import html
 import json
 import shutil
-from datetime import date, datetime
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 CURRENT = ' aria-current="page"'
 MARKER = ".ashleyclaudy-build"
+FONTS = (
+    "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900"
+    "&family=Inter:wght@400;500;600;700;800&display=swap"
+)
 
 SITE = json.loads((ROOT / "content/site.json").read_text())
 CATALOG = json.loads((ROOT / "content/books.json").read_text())
 BOOKS = {b["slug"]: b for b in CATALOG["books"]}
 SERIES = {s["id"]: s for s in CATALOG["series"]}
 
-ARROW = ('<svg class="ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4.5-5L15.5 10l-5 5" '
-         'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>')
-STAR = ('<svg class="ico star" viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" style="width:14px;height:14px">'
-        '<path d="M10 1.8l2.4 5.3 5.8.6-4.3 3.9 1.2 5.7L10 14.4l-5.1 2.9 1.2-5.7L1.8 7.7l5.8-.6z" fill="currentColor"/></svg>')
-ICON_MAIL = ('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
-             'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/>'
-             '<path d="M4 7.5l8 6 8-6"/></svg>')
-ICON_BOOKS = ('<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
-              'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4" width="4.5" height="16" rx="1"/>'
-              '<rect x="10" y="4" width="4.5" height="16" rx="1"/><path d="M16.8 5.4l4-.9 2 14.6-4 .9z" transform="translate(-2 0)"/></svg>')
-
-# Home-page shelf: (slug, mood label). Order is the order readers should meet the books.
-SHELF = [
-    ("ride", "Street racing & MC"),
-    ("wreck", "Crowns & Chaos #2"),
-    ("hustle", "College football"),
-    ("outside-the-ropes", "Boxing · Trilogy"),
-    ("it-goes-on", "Secrets & money"),
+# Curated entry points for each reading mood on the home page.
+WORLDS = [
+    ("ride", "Street racers & motorcycle clubs",
+     "Underground races, a sponsor's off-limits little sister, and brothers who won't take it well.",
+     "Start with Ride"),
+    ("hustle", "College football",
+     "A fresh start at a school where football players are royalty, and the king won't leave her alone.",
+     "Start with Hustle"),
+    ("outside-the-ropes", "Boxing & danger",
+     "A foster-care survivor who fights for money, a tattooed star boxer, and trouble she can't punch her way out of.",
+     "Start the trilogy"),
+    ("it-goes-on", "Secrets & money",
+     "A brand-new family, a world of wealth and lies, and a one-night stand who refuses to stay one night.",
+     "Start with It Goes On"),
 ]
 
 OLD_URLS = {
@@ -76,7 +76,7 @@ def kindle_sample(asin):
     return f"https://read.amazon.com/kp/embed?asin={asin}&preview=newtab&linkCode=kpe"
 
 
-def out_link(url, label, store, book="", cls="link"):
+def out_link(url, label, store, book="", cls="text-link"):
     return (f'<a class="{cls}" href="{e(url)}" target="_blank" rel="noopener" '
             f'data-track="{e(store)}" data-book="{e(book)}">{label}</a>')
 
@@ -87,25 +87,10 @@ def kindle_label(book):
     return "Read free in Kindle Unlimited" if book.get("kindle_unlimited") else "Buy on Kindle"
 
 
-def short_cta(book):
-    if book["status"] == "preorder":
-        return f"Preorder {book['title']}"
-    return f"Read {book['title']} free" if book.get("kindle_unlimited") else f"Buy {book['title']}"
-
-
 def series_label(book):
     if book["series"] == "standalones":
         return "Standalone"
     return f'{SERIES[book["series"]]["name"]} · Book {book["number"]}'
-
-
-SHORT_SERIES = {"crowns-and-chaos": "Crowns & Chaos", "outside-the-ropes": "Trilogy"}
-
-
-def short_label(book):
-    if book["series"] == "standalones":
-        return "Standalone"
-    return f'{SHORT_SERIES.get(book["series"], SERIES[book["series"]]["name"])} #{book["number"]}'
 
 
 def formats(book):
@@ -117,33 +102,7 @@ def formats(book):
     return " · ".join(out)
 
 
-def release_dt(book):
-    return datetime.fromisoformat(book["release_iso"])
-
-
-def release_short(book):
-    dt = release_dt(book)
-    return f"{dt.strftime('%b')} {dt.day}"
-
-
-def days_left(book):
-    dt = release_dt(book)
-    return max(0, (dt - datetime.now(dt.tzinfo)).days)
-
-
-def wreck():
-    return BOOKS["wreck"]
-
-
-def split_tagline(tagline):
-    """'Some rides are worth the crash.' -> ('Some rides are', 'worth the crash.')"""
-    words = tagline.split()
-    if len(words) < 5:
-        return "", tagline
-    return " ".join(words[:-3]), " ".join(words[-3:])
-
-
-# ---------- shared pieces ----------
+# ---------- analytics ----------
 
 def analytics():
     a = SITE.get("analytics", {})
@@ -171,39 +130,90 @@ def analytics():
     return "\n".join(parts)
 
 
+def wreck():
+    return BOOKS["wreck"]
+
+
+# ---------- icons ----------
+
+ICONS = {
+    "tiktok": '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.6 3c.4 2.3 1.9 3.8 4.4 4v3.1c-1.6 0-3-.5-4.4-1.4v6.5c0 3.9-2.6 6.3-6.1 6.3-3.4 0-6-2.6-6-6 0-3.5 2.8-6.1 6.4-6 .4 0 .8 0 1.1.1v3.3c-.4-.2-.8-.2-1.2-.2-1.7 0-2.9 1.2-2.9 2.8 0 1.6 1.2 2.8 2.8 2.8 1.7 0 2.8-1.2 2.8-3V3h3.1z"/></svg>',
+    "instagram": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.4" fill="currentColor" stroke="none"/></svg>',
+    "facebook": '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V4.9c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8V11H8v3h2.5v7h3z"/></svg>',
+    "goodreads": '<svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="17.5" text-anchor="middle" font-family="Georgia,serif" font-size="15" font-weight="700" fill="currentColor">g</text></svg>',
+    "amazon": '<svg viewBox="0 0 24 24" aria-hidden="true"><text x="12" y="14" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="currentColor">a</text><path d="M4 16.5c3.5 2.6 8 4 12.5 3.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M17.8 17.2l2.6 1.1-2.9.9z" fill="currentColor"/></svg>',
+    "share": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/></svg>',
+}
+
+
+def social_icon(name):
+    return ICONS.get(name.lower(), ICONS["share"])
+
+
+# ---------- shared chrome ----------
+
+def announce(r):
+    w = wreck()
+    if w["status"] != "preorder":
+        return ""
+    return (f'<div class="announce"><div class="wrap"><span class="dot" aria-hidden="true"></span>'
+            f'<span>Wreck<span class="hide-sm"> · Crowns &amp; Chaos Book 2</span> · Out {e(w["released"])}</span> '
+            f'<a href="{r}books/wreck.html">Preorder now</a></div></div>')
+
+
 def header(r, current=""):
-    items = [("books.html", "Books")]
-    if wreck()["status"] == "preorder":
-        items.append(("books/wreck.html", "Wreck"))
-    items.append(("index.html#about", "About"))
+    items = [("books.html", "Books"), ("index.html#reading-order", "Reading order"), ("index.html#about", "About")]
     links = "".join(
-        f'<a href="{r}{href}"{CURRENT if href == current else ""}>{label}</a>' for href, label in items
+        f'<a href="{r}{href}"{CURRENT if href == current else ""}>{label}</a>'
+        for href, label in items
     )
-    panel_links = "".join(
-        f'<a href="{r}{href}">{label}{"<small>Preorder</small>" if label == "Wreck" else ""}</a>' for href, label in items
+    cta = f'<a class="btn btn-primary btn-sm" href="{r}bonus.html" data-open-join>Free bonus chapters</a>'
+    overlay_links = "".join(
+        f'<a href="{r}{href}">{label}</a>' for href, label in items
     )
-    cta = f'<a class="btn btn-glow btn-sm" href="{r}bonus.html">Free bonus chapters</a>'
-    cta_big = f'<a class="btn btn-glow btn-block" href="{r}bonus.html">Free bonus chapters {ARROW}</a>'
     return f"""<a class="skip" href="#main">Skip to content</a>
+{announce(r)}
 <header class="site-head">
-  <div class="wrap head-row">
-    <a class="logo" href="{r}index.html" aria-label="Ashley Claudy, home">Ashley Claudy</a>
+  <div class="head-row">
+    <a class="logo" href="{r}index.html">Ashley <em>Claudy</em></a>
     <nav class="nav" aria-label="Main">{links}{cta}</nav>
-    <details class="menu">
-      <summary aria-label="Menu"><i></i><i></i></summary>
-      <nav class="menu-panel" aria-label="Menu">{panel_links}{cta_big}</nav>
-    </details>
+    <button class="menu-btn" type="button" data-menu-btn aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
-</header>"""
+</header>
+<div class="menu-overlay" aria-hidden="false">
+  <nav aria-label="Menu">{overlay_links}</nav>
+  <a class="btn btn-primary" href="{r}bonus.html" data-open-join>Free bonus chapters</a>
+</div>"""
 
 
-def socials():
+def footer(r):
+    year = date.today().year
+    return f"""<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <a class="logo" href="{r}index.html">Ashley <em>Claudy</em></a>
+    <nav class="foot-nav" aria-label="Footer">
+      <a href="{r}books.html">Books</a>
+      <a href="{r}index.html#reading-order">Reading order</a>
+      <a href="{r}bonus.html">Bonus chapters</a>
+      <a href="{r}books.html#where-to-buy">Where to buy</a>
+      <a href="{r}links.html">Links</a>
+      <a href="{r}index.html#about">About</a>
+    </nav>
+    <p class="fine">As an Amazon Associate I earn from qualifying purchases.</p>
+    <p class="fine">© {year} Ashley Claudy. All rights reserved.</p>
+  </div>
+</footer>"""
+
+
+def socials(cls="socials"):
     items = "".join(
         f'<li><a href="{e(s["url"])}" target="_blank" rel="noopener" data-track="social-{e(s["name"].lower())}">'
-        f'{e(s["name"])} <small>{e(s["handle"])}</small></a></li>'
+        f'{social_icon(s["name"])}<span><b>{e(s["name"])}</b><small>{e(s["handle"])}</small></span></a></li>'
         for s in SITE["social"]
     )
-    return f'<ul class="socials">{items}</ul>'
+    return f'<ul class="{cls}">{items}</ul>'
 
 
 def social_url(name):
@@ -213,81 +223,60 @@ def social_url(name):
     return SITE["amazon_author_url"]
 
 
-def footer(r):
-    year = date.today().year
-    return f"""<footer class="site-foot">
-  <div class="wrap foot-grid">
-    <nav class="foot-nav" aria-label="Footer">
-      <a href="{r}books.html">Books</a>
-      <a href="{r}bonus.html">Bonus chapters</a>
-      <a href="{r}books.html#where-to-buy">Where to buy</a>
-      <a href="{r}links.html">Links</a>
-      <a href="{r}index.html#about">About</a>
-    </nav>
-    <div class="fine-col">
-      <p class="fine">As an Amazon Associate I earn from qualifying purchases.</p>
-      <p class="fine">© {year} Ashley Claudy. All rights reserved.</p>
-    </div>
-  </div>
-  <div class="big-mark" aria-hidden="true"><span>Ashley</span><span>Claudy</span></div>
-</footer>"""
+def share_btn(title, text, url, label="Share"):
+    return (f'<button class="share-btn" type="button" data-share data-share-title="{e(title)}" '
+            f'data-share-text="{e(text)}" data-share-url="{e(url)}">{ICONS["share"]}<span>{e(label)}</span></button>')
 
 
-def crew_form(form_id):
+def crew_pass(form_id, title=None, pitch=None):
     nl = SITE["newsletter"]
     action = nl.get("mailerlite_form_action", "")
-    return f"""<div class="signup-wrap">
-    <form class="signup" data-signup="{e(form_id)}" method="post" data-action="{e(action)}" data-fallback="{e(nl["fallback_url"])}" novalidate>
-      <div class="signup-row">
-        <label class="sr-only" for="{form_id}-email">Email address</label>
-        <input class="input" id="{form_id}-email" name="fields[email]" type="email" inputmode="email" autocomplete="email" placeholder="Your email address" required>
-        <button class="btn btn-glow" type="submit">Send me the chapters {ARROW}</button>
-      </div>
-      <input type="hidden" name="ml-submit" value="1">
-      <input type="hidden" name="anticsrf" value="true">
-      <p class="signup-error" role="alert" hidden></p>
-      <p class="signup-note">Free. Unsubscribe anytime. Your email is never shared.</p>
-    </form>
-    <div class="signup-done" role="status" hidden>
-      <p class="done-title">You're on the Crew.</p>
-      <p>Your bonus chapters are on the way. If the email isn't in your inbox in a few minutes, check Promotions or Spam and move it to your main inbox so you don't miss the Wreck cover reveal.</p>
-      <div class="row">
-        <a class="btn btn-line btn-sm" href="{e(social_url("TikTok"))}" target="_blank" rel="noopener" data-track="social-tiktok">Follow on TikTok</a>
-        <a class="btn btn-line btn-sm" href="{e(social_url("Facebook"))}" target="_blank" rel="noopener" data-track="social-facebook">Follow on Facebook</a>
-      </div>
-    </div>
-  </div>"""
-
-
-def crew(form_id, headline=None):
-    nl = SITE["newsletter"]
     perks = "".join(f"<li>{e(p)}</li>" for p in nl["perks"])
-    headline = headline or 'Get the bonus chapters. <span class="serif">Free.</span>'
-    return f"""<div class="crew">
-  <div class="crew-copy">
-    <p class="kicker">Join the Crew</p>
-    <h2>{headline}</h2>
-    <p class="lede">{e(nl["crew_line"])}</p>
-  </div>
-  {crew_form(form_id)}
+    return f"""<div class="signup-card">
+  <p class="kicker">Crew pass · Free</p>
+  <h3>{e(title or nl["magnet_title"])}</h3>
+  <p class="lead" style="font-size:1rem">{e(pitch or nl["magnet_pitch"])}</p>
   <ul class="perks">{perks}</ul>
+  <form class="signup" data-signup="{e(form_id)}" method="post" data-action="{e(action)}" data-fallback="{e(nl["fallback_url"])}" novalidate style="margin-top:22px">
+    <div class="field"><label for="{form_id}-name">First name</label><input id="{form_id}-name" name="fields[name]" autocomplete="given-name" placeholder="Optional"></div>
+    <div class="field"><label for="{form_id}-email">Email</label><input id="{form_id}-email" name="fields[email]" type="email" autocomplete="email" placeholder="you@example.com" required></div>
+    <input type="hidden" name="ml-submit" value="1">
+    <input type="hidden" name="anticsrf" value="true">
+    <p class="signup-error" role="alert" hidden></p>
+    <button class="btn btn-primary btn-block" type="submit">Send my bonus chapters <span class="arrow" aria-hidden="true">→</span></button>
+    <p class="signup-note">Unsubscribe anytime. Your email is never shared.</p>
+  </form>
+  <div class="signup-done" role="status" hidden>
+    <p class="display" style="font-size:1.6rem;margin:0 0 8px">You're on the Crew.</p>
+    <p style="color:var(--paper-dim)">Your bonus chapters are on the way. Check Promotions or Spam if they don't land in a few minutes — and don't miss the Wreck cover reveal.</p>
+    <div class="btn-row">
+      <a class="btn btn-ghost btn-sm" href="{e(social_url("TikTok"))}" target="_blank" rel="noopener" data-track="social-tiktok">Follow on TikTok</a>
+      <a class="btn btn-ghost btn-sm" href="{e(social_url("Instagram"))}" target="_blank" rel="noopener" data-track="social-instagram">Follow on Instagram</a>
+    </div>
+  </div>
 </div>"""
 
 
 def join_modal():
-    return f"""<dialog class="modal" id="join-modal" aria-label="Get free bonus chapters">
-  <button class="modal-close" type="button" data-close aria-label="Close">×</button>
-  {crew("modal")}
+    return f"""<dialog class="join-modal" id="join-modal" aria-label="Get free bonus chapters">
+  <div class="signup-card">
+    <button class="modal-close" type="button" data-close aria-label="Close">×</button>
+    {crew_pass("modal")}
+  </div>
 </dialog>"""
 
 
-def dock_html(dock):
-    primary = out_link(dock["url"], f'{e(dock["label"])}', dock["store"], dock["book"], "btn btn-glow")
-    secondary = f'<a class="btn btn-line dock-sec" href="{e(dock["sec"])}">Free chapters</a>'
-    return f'<div class="dock" role="region" aria-label="Quick actions">{primary}{secondary}</div>'
+def buybar(r, book):
+    label = kindle_label(book)
+    sub = book.get("proof") or series_label(book)
+    return f"""<div class="buybar" data-buybar>
+  <img src="{r}assets/covers/{e(book['cover'])}" alt="" width="40" height="60">
+  <div class="bb-text"><b>{e(book['title'])}</b><small><span class="stars" aria-hidden="true">★</span> {e(sub)}</small></div>
+  {out_link(amazon(book['kindle_asin']), e(label), "kindle-buybar", book['slug'], "btn btn-primary btn-sm")}
+</div>"""
 
 
-def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, solo=False, current="", theme="blue", dock=None):
+def page(path, title, description, body, *, image="ride.jpg", jsonld=None, solo=False, current="", buybar_book=None):
     r = "/" if path == "404.html" else "../" * path.count("/")
     canonical = abs_url("" if path == "index.html" else path)
     ld = "".join(
@@ -304,29 +293,25 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
 <meta property="og:title" content="{e(title)}">
 <meta property="og:description" content="{e(description)}">
 <meta property="og:url" content="{e(canonical)}">
-<meta property="og:image" content="{e(abs_url("assets/" + image))}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:image" content="{e(abs_url("assets/covers/" + image))}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{e(abs_url("assets/" + image))}">
-<meta name="theme-color" content="#09090b">
+<meta name="theme-color" content="#0a0a0d">
 <link rel="icon" href="{r}assets/favicon.svg" type="image/svg+xml">
-<link rel="preload" href="{r}assets/fonts/bricolage-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{r}assets/fonts/inter-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="{FONTS}">
 <link rel="stylesheet" href="{r}assets/css/site.css">
-<script>document.documentElement.classList.add("js")</script>
 {analytics()}
 {ld}"""
     chrome_top = "" if solo else header(r, current)
     chrome_bottom = "" if solo else footer(r) + join_modal()
-    dock_markup = dock_html(dock) if dock else ""
-    body_class = f"t-{theme}" + (" has-dock" if dock else "")
+    bar = buybar(r, buybar_book) if buybar_book else ""
     content = f"""{chrome_top}
 <main id="main">
 {body}
 </main>
 {chrome_bottom}
-{dock_markup}
+{bar}
 {ml_frame}
 <script src="{r}assets/js/site.js" defer></script>"""
 
@@ -337,7 +322,7 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 {head}
 </head>
-<body class="{body_class}">
+<body>
 {content}
 </body>
 </html>
@@ -358,253 +343,291 @@ def person_ld():
 
 # ---------- components ----------
 
-def hero_bg(src):
-    return f'<img class="hero-bg" src="{src}" alt="" aria-hidden="true" width="324" height="500">'
-
-
-def trope_marquee():
-    skip = {"Standalone", "Preorder", "Series finale"}
-    seen, items = set(), []
-    for b in CATALOG["books"]:
-        for t in b["tropes"]:
-            if t in skip or t.startswith("Book ") or "#" in t or t in seen:
-                continue
-            seen.add(t)
-            items.append(t)
-    group = "".join(f"<span>{e(t)}</span>" for t in items)
-    return f'<div class="marquee" aria-hidden="true"><div class="marquee-track">{group}{group}</div></div>'
-
-
-def shelf_card(book, r, label, line=None, badge="", delay=0):
-    href = f"{r}books/{book['slug']}.html"
-    cta = "Preorder" if book["status"] == "preorder" else ("Read free" if book.get("kindle_unlimited") else "View book")
-    badge_html = f'<span class="badge">{e(badge)}</span>' if badge else ""
-    return f"""<a class="shelf-card t-{book['accent']} reveal" style="--d:{delay}s" href="{href}">
-  <span class="cover">{badge_html}<img src="{r}assets/covers/{e(book['cover'])}" alt="{e(book['title'])} by Ashley Claudy, cover" width="333" height="500" loading="lazy"></span>
-  <p class="kicker">{e(label)}</p>
-  <h3>{e(book['title'])}</h3>
-  <p class="line">{e(line or book['hook'])}</p>
-  <span class="more">{cta} {ARROW}</span>
-</a>"""
+def chips(tropes, limit=None):
+    items = tropes[:limit] if limit else tropes
+    return '<ul class="chips">' + "".join(f'<li class="chip">{e(t)}</li>' for t in items) + "</ul>"
 
 
 def countdown(book, done_id):
-    return f"""<div class="board" data-countdown="{e(book['release_iso'])}" data-countdown-done="#{done_id}" role="timer" aria-label="Time until release">
-  <div class="board-cell"><span class="board-num" data-unit="d">{days_left(book)}</span><span class="board-unit">Days</span></div>
-  <div class="board-cell"><span class="board-num" data-unit="h">00</span><span class="board-unit">Hours</span></div>
-  <div class="board-cell"><span class="board-num" data-unit="m">00</span><span class="board-unit">Min</span></div>
-  <div class="board-cell"><span class="board-num" data-unit="s">00</span><span class="board-unit">Sec</span></div>
+    return f"""<div class="countdown" data-countdown="{e(book['release_iso'])}" data-countdown-done="#{done_id}" aria-label="Time until release">
+  <div class="count-cell"><span class="count-num" data-unit="d">--</span><span class="count-unit">Days</span></div>
+  <div class="count-cell"><span class="count-num" data-unit="h">--</span><span class="count-unit">Hours</span></div>
+  <div class="count-cell"><span class="count-num" data-unit="m">--</span><span class="count-unit">Min</span></div>
+  <div class="count-cell"><span class="count-num" data-unit="s">--</span><span class="count-unit">Sec</span></div>
 </div>
-<p class="lede" id="{done_id}" hidden>Out now on Kindle.</p>"""
+<p class="lead" id="{done_id}" hidden>Out now on Kindle.</p>"""
 
 
-# ---------- pages ----------
+def ticker():
+    seen, tropes = set(), []
+    for b in CATALOG["books"]:
+        for t in b["tropes"]:
+            if t.lower() not in seen:
+                seen.add(t.lower())
+                tropes.append(t)
+    items = "".join(f"<span>{e(t)}</span>" for t in tropes)
+    return f'<div class="ticker" aria-hidden="true"><div class="ticker-track">{items}{items}</div></div>'
+
+
+def rail_card(book, r, delay=""):
+    href = f"{r}books/{book['slug']}.html"
+    return f"""<a class="rail-card reveal {delay}" href="{href}">
+  <div class="rail-cover"><img src="{r}assets/covers/{e(book['cover'])}" alt="{e(book['title'])} by Ashley Claudy, cover" width="300" height="450" loading="lazy"></div>
+  <div class="rail-body">
+    <p class="kicker c-{book['accent']}" style="margin-bottom:8px">{e(series_label(book))}</p>
+    <h3>{e(book['title'])}</h3>
+    <p>{e(book['hook'])}</p>
+    <span class="rail-cta c-{book['accent']}">Read now →</span>
+  </div>
+</a>"""
+
+
+def stats():
+    items = "".join(
+        f'<div class="stat reveal"><div class="stat-figure" data-countup>{e(p["figure"])}</div><div class="stat-label">{e(p["label"])}</div></div>'
+        for p in SITE["proof"]
+    )
+    return f'<div class="stats">{items}</div>'
+
+
+def reading_order(r):
+    items = []
+    for i, s in enumerate(CATALOG["series"]):
+        rows = []
+        for slug in s["books"]:
+            b = BOOKS[slug]
+            num = b["number"] if b["number"] else "·"
+            meta = "Preorder" if b["status"] == "preorder" else b["released"].split()[-1]
+            rows.append(
+                f'<li><a href="{r}books/{slug}.html"><span class="acc-num">{num}</span>'
+                f'<span class="t">{e(b["title"])}</span><span class="m">{e(meta)}</span><span class="go" aria-hidden="true">→</span></a></li>'
+            )
+        tag = "Start anywhere" if s["id"] == "standalones" else f"{len(s['books'])} books · Read in order"
+        items.append(f"""<div class="acc-item" data-acc{" data-acc-open" if i == 0 else ""}>
+  <button class="acc-head" type="button" data-acc-head aria-expanded="false">
+    <span style="flex:1"><span class="acc-meta">{e(tag)}</span><h3>{e(s['name'])}</h3></span>
+    <span class="acc-icon" aria-hidden="true">+</span>
+  </button>
+  <div class="acc-panel" data-acc-panel>
+    <p class="lead" style="padding:0 4px">{e(s['pitch'])}</p>
+    <ol class="acc-books">{"".join(rows)}</ol>
+  </div>
+</div>""")
+    return f'<div class="acc">{"".join(items)}</div>'
+
+
+# ---------- home ----------
 
 def build_home():
     r = ""
     ride = BOOKS["ride"]
     w = wreck()
-    lead, accent_words = split_tagline(ride["tagline"])
-    nbsp_words = accent_words.replace(" ", "&nbsp;")
 
-    pill = ""
-    if w["status"] == "preorder":
-        pill = (f'<a class="pill hero-pill" href="books/wreck.html"><span class="dot"></span>'
-                f'<span>Wreck drops {e(release_short(w))} · <b><span data-days-until="{e(w["release_iso"])}">{days_left(w)}</span> days</b></span></a>')
-    hero = f"""<section class="hero t-blue" aria-labelledby="hero-title">
-  {hero_bg("assets/covers/ride.jpg")}
-  <div class="wrap hero-in">
-    {pill}
-    <div class="hero-cover"><a data-tilt href="books/ride.html"><img class="cover-art" src="assets/covers/ride.jpg" alt="Ride by Ashley Claudy, cover" width="324" height="500" fetchpriority="high"></a></div>
-    <div class="hero-copy">
-      <p class="kicker">Crowns &amp; Chaos · Book 1 · Out now</p>
-      <h1 id="hero-title"><span class="sr-only">Ride by Ashley Claudy: </span>{e(lead)} <span class="serif">{nbsp_words}</span></h1>
-      <p class="lede">{e(ride['hook'])}</p>
-      <div class="cta-row" data-dock-watch>
-        {out_link(amazon(ride['kindle_asin']), f"Read free in Kindle Unlimited {ARROW}", "kindle", "ride", "btn btn-glow")}
-        {out_link(kindle_sample(ride['kindle_asin']), "Read the first chapters", "sample", "ride", "btn btn-line")}
+    hero = f"""<section class="hero" aria-labelledby="hero-title" data-buybar-sentinel>
+  <div class="hero-bg" aria-hidden="true"><img src="assets/covers/ride.jpg" alt="" fetchpriority="high"></div>
+  <div class="hero-scrim" aria-hidden="true"></div>
+  <div class="wrap hero-inner">
+    <div>
+      <p class="kicker c-blue reveal">Crowns &amp; Chaos · Book 1 · Out now</p>
+      <h1 class="hero-title reveal reveal-d1" id="hero-title">Ride</h1>
+      <p class="hero-tag reveal reveal-d1"><em>{e(ride['tagline'])}</em></p>
+      <p class="lead reveal reveal-d2">{e(ride['hook'])} Getting involved with his sponsor's little sister was never part of Weston Burke's plan.</p>
+      <div class="hero-cta reveal reveal-d2">
+        {out_link(amazon(ride['kindle_asin']), "Read free in Kindle Unlimited", "kindle", "ride", "btn btn-primary")}
+        {out_link(kindle_sample(ride['kindle_asin']), "Read a sample", "sample", "ride", "btn btn-ghost")}
       </div>
-      <ul class="proof-row">
-        <li>{STAR}<b>{e(ride['proof'])}</b></li>
-        <li>{ride['pages']} pages</li>
-      </ul>
+      <p class="hero-proof reveal reveal-d3"><span class="stars" aria-hidden="true">★★★★☆</span><span>{e(ride['proof'])} · 556 pages · Also in paperback</span></p>
+      <div class="hero-share reveal reveal-d3">{share_btn("Ride by Ashley Claudy", "Some rides are worth the crash. — Ride by Ashley Claudy", abs_url(), "Share this book")}</div>
     </div>
   </div>
-</section>"""
-
-    cards = []
-    for i, (slug, label) in enumerate(SHELF):
-        b = BOOKS[slug]
-        badge = {"ride": "New", "wreck": "Preorder", "outside-the-ropes": "3 books"}.get(slug, "")
-        line = None
-        if slug == "wreck":
-            line = "The next ride into Crowns & Chaos. The cover reveal goes to the Crew first."
-        cards.append(shelf_card(b, r, label, line=line, badge=badge, delay=round(i * 0.06, 2)))
-    proof = "".join(
-        f'<div class="stat"><b>{e(p["figure"])}</b><span>{e(p["label"])}</span></div>' for p in SITE["proof"]
-    )
-    shelf = f"""<section class="section" id="books" aria-labelledby="shelf-title">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <p class="kicker">The books</p>
-      <h2 class="h2" id="shelf-title">Pick your kind of <span class="serif">trouble.</span></h2>
-      <p>Street racers, fighters, football players. Choose the world that sounds like you. Every ebook is free in Kindle Unlimited.</p>
-    </div>
-  </div>
-  <div class="shelf" tabindex="0" aria-label="Books by Ashley Claudy">{"".join(cards)}</div>
-  <div class="shelf-foot"><a class="btn btn-line" href="books.html">Browse every book {ARROW}</a></div>
-  <div class="wrap"><div class="stats reveal">{proof}</div></div>
+  <div class="scroll-cue" aria-hidden="true">Scroll</div>
 </section>"""
 
     preorder = ""
     if w["status"] == "preorder":
-        preorder = f"""<section class="wreck t-ember section" aria-labelledby="wreck-title">
-  <div class="wrap wreck-grid">
-    <div class="wreck-copy">
-      <p class="kicker reveal">Crowns &amp; Chaos · Book 2 · Preorder</p>
-      <h2 class="wreck-title reveal" id="wreck-title">Wreck</h2>
-      <p class="lede reveal">Lands on Kindle {e(w['released'])}. Preorder now and it shows up on your device on release day. The cover reveal goes to the Crew before anywhere else.</p>
-      <div class="reveal" style="width:100%">{countdown(w, "wreck-out")}</div>
-      <div class="cta-row reveal" style="max-width:520px">
-        {out_link(amazon(w['kindle_asin']), f"Preorder Wreck {ARROW}", "kindle-preorder", "wreck", "btn btn-glow")}
-        <a class="btn btn-line" href="#join">Get the cover reveal first</a>
+        preorder = f"""<section class="band preorder" aria-labelledby="wreck-title">
+  <div class="wrap preorder-grid">
+    <div class="preorder-cover reveal"><img src="assets/covers/wreck.jpg" alt="Wreck by Ashley Claudy — cover reveal coming soon" width="300" height="450" loading="lazy"></div>
+    <div>
+      <p class="kicker c-ember reveal">Crowns &amp; Chaos · Book 2 · Preorder</p>
+      <h2 class="reveal reveal-d1" id="wreck-title">Wreck</h2>
+      <p class="lead reveal reveal-d1">Lands on Kindle {e(w['released'])}. Preorder now and it's on your device at midnight on release day — no waiting, no spoilers.</p>
+      <div class="reveal reveal-d2">{countdown(w, "wreck-out")}</div>
+      <div class="btn-row reveal reveal-d2">
+        {out_link(amazon(w['kindle_asin']), "Preorder Wreck", "kindle-preorder", "wreck", "btn btn-accent")}
+        <a class="btn btn-ghost" href="bonus.html" data-open-join>See the cover first</a>
       </div>
+      <p class="fine reveal reveal-d3">The cover reveal goes to the Crew newsletter before it goes anywhere else.</p>
     </div>
-    <div class="wreck-cover reveal"><a data-tilt href="books/wreck.html"><img class="cover-art" src="assets/covers/wreck.jpg" alt="Wreck by Ashley Claudy, cover reveal coming soon" width="333" height="500" loading="lazy"></a></div>
   </div>
 </section>"""
 
-    join = f"""<section class="section" id="join" aria-label="Join the Crew" data-dock-watch>
-  <div class="wrap reveal">{crew("home")}</div>
+    rail = "".join(rail_card(BOOKS[slug], r, f"reveal-d{i % 3}") for i, (slug, _, _, _) in enumerate(WORLDS))
+    shelf = f"""<section class="band" aria-labelledby="shelf-title">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="kicker">Find your next obsession</p>
+      <h2 id="shelf-title">Pick your <em>poison</em></h2>
+      <p class="lead">New Adult romance with real stakes. Choose the world that sounds like you and start there.</p>
+    </div>
+  </div>
+  <div class="wrap"><div class="rail">{rail}</div>
+  <p class="rail-hint"><span aria-hidden="true">←</span> Swipe <span aria-hidden="true">→</span></p></div>
 </section>"""
 
-    bio = SITE["bio"]
+    proof = f"""<section class="band-tight proof-band" aria-label="Reader proof">
+  <div class="wrap">{stats()}</div>
+</section>"""
+
+    nl = SITE["newsletter"]
+    join = f"""<section class="band crew" id="join" aria-labelledby="join-title">
+  <div class="wrap crew-grid">
+    <div class="reveal">
+      <p class="kicker c-blue">Join the Crew</p>
+      <h2 id="join-title">Get the chapters <em>nobody</em> else gets</h2>
+      <p class="lead">{e(nl['crew_line'])}</p>
+      <p class="lead" style="margin-top:14px">Follow along for teasers, cover reveals, and release-day chaos:</p>
+      <div style="margin-top:6px">{socials()}</div>
+    </div>
+    <div class="reveal reveal-d1">{crew_pass("home")}</div>
+  </div>
+</section>"""
+
+    order = f"""<section class="band" id="reading-order" aria-labelledby="order-title">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="kicker">Reading order</p>
+      <h2 id="order-title">Where to <em>start</em></h2>
+      <p class="lead">Every ebook is on Amazon and free with Kindle Unlimited. Paperbacks and audiobooks available too.</p>
+    </div>
+    <div class="reveal">{reading_order(r)}</div>
+  </div>
+</section>"""
+
+    photo = SITE.get("author_photo")
+    portrait = (f'<img class="about-photo" src="{e(photo)}" alt="Ashley Claudy" loading="lazy">' if photo
+                else '<div class="monogram" aria-hidden="true">AC</div>')
+    bio = "".join(f"<p>{e(p)}</p>" for p in SITE["bio"])
     email = SITE.get("contact_email", "")
     contact = (f"""<div class="copy-row"><span>Rights, interviews, collaborations:</span>
-      <code>{e(email)}</code><button class="btn btn-line btn-sm" type="button" data-copy="{e(email)}">Copy email</button></div>""" if email else "")
-    about = f"""<section class="section" id="about" aria-labelledby="about-title" style="padding-top:0">
+      <code>{e(email)}</code><button class="btn btn-ghost btn-sm" type="button" data-copy="{e(email)}">Copy email</button></div>""" if email else "")
+    about = f"""<section class="band" id="about" aria-labelledby="about-title" style="background:var(--ink-2);border-top:1px solid var(--line)">
   <div class="wrap about-grid">
-    <div class="reveal">
-      <p class="kicker" id="about-title" style="margin-bottom:22px">About Ashley</p>
-      <p class="about-quote">{e(bio[0])}</p>
-    </div>
-    <div class="about-copy reveal">
-      {"".join(f"<p>{e(p)}</p>" for p in bio[1:])}
+    <div class="reveal">{portrait}</div>
+    <div class="reveal reveal-d1">
+      <p class="kicker">About the author</p>
+      <h2 id="about-title">Ashley Claudy</h2>
+      <div class="lead">{bio}</div>
       {socials()}
       {contact}
     </div>
   </div>
 </section>"""
 
-    body = hero + trope_marquee() + shelf + preorder + join + about
-    dock = {"label": short_cta(ride), "url": amazon(ride["kindle_asin"]), "store": "kindle-dock", "book": "ride", "sec": "#join"}
+    body = hero + ticker() + preorder + shelf + proof + join + order + about
     return page("index.html", "Ashley Claudy · New Adult Romance Author", SITE["meta_description"], body,
-                image="og/home.jpg", jsonld=[person_ld()], dock=dock)
+                image="ride.jpg", jsonld=[person_ld()], buybar_book=ride)
 
+
+# ---------- books page ----------
 
 def build_books():
     r = ""
     blocks = []
     for s in CATALOG["series"]:
-        ordered = s["id"] != "standalones"
-        cards = "".join(
-            shelf_card(BOOKS[slug], r, f"Book {BOOKS[slug]['number']}" if ordered else "Standalone",
-                       badge="Preorder" if BOOKS[slug]["status"] == "preorder" else "", delay=round(i * 0.06, 2))
-            for i, slug in enumerate(s["books"])
-        )
+        cards = "".join(rail_card(BOOKS[slug], r) for slug in s["books"])
         box = ""
         if s.get("box_set"):
             bs = s["box_set"]
-            box = f"""<div class="boxset t-{s['accent']} reveal">
-  <img src="assets/covers/{e(bs['cover'])}" alt="{e(bs['title'])}, cover" width="130" height="161" loading="lazy">
+            box = f"""<div class="boxset reveal">
+  <img src="assets/covers/{e(bs['cover'])}" alt="{e(bs['title'])}, cover" width="110" height="165" loading="lazy">
   <div>
-    <p class="kicker">Binge it</p>
-    <h3>{e(bs['title'])}</h3>
-    <p>All three books in one download, {bs['pages']:,} pages. No waiting on cliffhangers.</p>
+    <p class="kicker c-{s['accent']}" style="margin-bottom:8px">Binge it</p>
+    <h3 style="margin-bottom:8px">{e(bs['title'])}</h3>
+    <p class="lead" style="font-size:.95rem">All three books in one download — {bs['pages']:,} pages. No waiting on cliffhangers.</p>
+    <div class="btn-row">{out_link(amazon(bs['asin']), "Get the box set", "kindle-boxset", s['id'], "btn btn-primary btn-sm")}</div>
   </div>
-  {out_link(amazon(bs['asin']), f"Get the box set {ARROW}", "kindle-boxset", s['id'], "btn btn-glow")}
 </div>"""
         series_link = ""
         if s.get("amazon_series_asin"):
-            series_link = f'<p class="fine">{out_link(amazon(s["amazon_series_asin"]), "See the whole series on Amazon", "amazon-series", s["id"])}</p>'
-        blocks.append(f"""<section class="series t-{s['accent']}" id="{s['id']}" aria-labelledby="{s['id']}-title">
-  <div class="wrap">
-    <div class="series-head reveal">
-      <p class="kicker">{"Start anywhere" if not ordered else "Read in order"}</p>
-      <h2 id="{s['id']}-title">{e(s['name'])}</h2>
-      <p>{e(s['pitch'])}</p>
-      {series_link}
-    </div>
-    <div class="grid-books">{cards}</div>
-    {box}
+            series_link = f'<p>{out_link(amazon(s["amazon_series_asin"]), "See the whole series on Amazon →", "amazon-series", s["id"])}</p>'
+        blocks.append(f"""<div class="series-block a-{s['accent']}" id="{s['id']}">
+  <div class="section-head reveal" style="margin-bottom:26px">
+    <p class="kicker c-{s['accent']}">{"Standalones" if s["id"] == "standalones" else "Series"}</p>
+    <h2 id="{s['id']}-title">{e(s['name'])}</h2>
+    <p class="lead">{e(s['pitch'])}</p>
+    {series_link}
   </div>
-</section>""")
+  <div class="rail">{"".join(cards)}</div>
+  {box}
+</div>""")
 
-    where = f"""<section class="series" id="where-to-buy" aria-labelledby="where-title">
+    where = f"""<section class="band-tight" id="where-to-buy" aria-labelledby="where-title" style="border-top:1px solid var(--line)">
   <div class="wrap">
-    <div class="series-head reveal"><p class="kicker">Where to buy</p><h2 id="where-title">Ebooks, paperbacks, audio</h2></div>
-    <div class="where reveal">
-      <div><h3>Ebooks</h3><p>Ashley's ebooks are exclusive to Amazon. Buy them there, or read them free with a Kindle Unlimited subscription.</p>
-        {out_link("https://www.amazon.com/kindle-dbs/hz/subscribe/ku", f"About Kindle Unlimited {ARROW}", "ku-info", "", "link")}</div>
-      <div><h3>No Kindle?</h3><p>The free Kindle app works on any phone, tablet, or computer. Download it, buy or borrow the book, and it appears in the app.</p>
-        {out_link("https://www.amazon.com/kindle-dbs/fd/kcp", f"Get the free Kindle app {ARROW}", "kindle-app", "", "link")}</div>
-      <div><h3>Print &amp; audio</h3><p>Paperbacks are sold at Amazon, Barnes &amp; Noble, and other bookstores, and your library can order them. Audiobooks are on Audible.</p></div>
+    <div class="section-head reveal">
+      <p class="kicker">Where to buy</p>
+      <h2 id="where-title">Ebooks, <em>paperbacks</em>, audio</h2>
+    </div>
+    <div class="stats reveal">
+      <div class="stat"><h3 style="font-size:1.3rem">Ebooks</h3><p class="lead" style="font-size:.95rem">Exclusive to Amazon — buy there, or read free with Kindle Unlimited.</p>
+        <p>{out_link("https://www.amazon.com/kindle-dbs/hz/subscribe/ku", "About Kindle Unlimited →", "ku-info")}</p></div>
+      <div class="stat"><h3 style="font-size:1.3rem">No Kindle?</h3><p class="lead" style="font-size:.95rem">The free Kindle app works on any phone, tablet, or computer.</p>
+        <p>{out_link("https://www.amazon.com/kindle-dbs/fd/kcp", "Get the free Kindle app →", "kindle-app")}</p></div>
+      <div class="stat"><h3 style="font-size:1.3rem">Print &amp; audio</h3><p class="lead" style="font-size:.95rem">Paperbacks at Amazon, Barnes &amp; Noble, and bookstores — your library can order them. Audiobooks on Audible.</p></div>
     </div>
   </div>
 </section>"""
 
-    join = f"""<section class="section" id="join" aria-label="Join the Crew"><div class="wrap reveal">{crew("books")}</div></section>"""
-
-    body = f"""<section class="hero t-blue" style="overflow:clip">
-  {hero_bg("assets/covers/ride.jpg")}
-  <div class="wrap page-head">
-    <p class="kicker">All books</p>
-    <h1>The <span class="serif" style="color:var(--glow)">books.</span></h1>
-    <p class="lede">Two series and two standalones, all New Adult romance. Every ebook is free to read in Kindle Unlimited.</p>
+    body = f"""<section class="band-tight">
+  <div class="wrap">
+    <div class="section-head reveal" style="padding-top:20px">
+      <p class="kicker">All books</p>
+      <h1 style="font-size:clamp(2.6rem,10vw,4.5rem)">The <em>books</em></h1>
+      <p class="lead">Two series and two standalones — all New Adult romance, all free in Kindle Unlimited.</p>
+    </div>
+    {"".join(blocks)}
   </div>
 </section>
-{"".join(blocks)}
-{where}
-{join}"""
+{where}"""
     return page("books.html", "Books by Ashley Claudy · Reading Order",
                 "Every Ashley Claudy book in reading order: Crowns & Chaos, Outside the Ropes, Hustle, and It Goes On. Read free in Kindle Unlimited.",
-                body, image="og/home.jpg", current="books.html")
+                body, image="ride.jpg", current="books.html")
 
+
+# ---------- book detail page ----------
 
 def build_book(book):
     r = "../"
     slug = book["slug"]
     s = SERIES[book["series"]]
-    cover_src = f"{r}assets/covers/{e(book['cover'])}"
 
-    primary = out_link(amazon(book["kindle_asin"]), f"{e(kindle_label(book))} {ARROW}", "kindle", slug, "btn btn-glow btn-block")
-    sample = ""
+    primary = out_link(amazon(book["kindle_asin"]), e(kindle_label(book)), "kindle", slug, "btn btn-primary btn-block")
+    secondary = ""
     if book["status"] == "out":
-        sample = out_link(kindle_sample(book["kindle_asin"]), "Read a free sample", "sample", slug, "btn btn-line btn-block")
-
-    def row(url, label, sub, store):
-        return (f'<a href="{e(url)}" target="_blank" rel="noopener" data-track="{e(store)}" data-book="{e(slug)}">'
-                f'<span>{label} <small>{e(sub)}</small></span>{ARROW}</a>')
-
+        secondary = out_link(kindle_sample(book["kindle_asin"]), "Read a free sample", "sample", slug, "btn btn-ghost btn-block")
     more = []
     if book.get("paperback"):
         pb = book["paperback"]
-        more.append(row(amazon(pb["asin"]), "Paperback", "Amazon", "paperback-amazon"))
+        more.append(out_link(amazon(pb["asin"]), "Paperback", "paperback-amazon", slug))
         if pb.get("isbn13"):
-            more.append(row(f"https://www.barnesandnoble.com/s/{pb['isbn13']}", "Paperback", "Barnes &amp; Noble".replace("&amp;", "&"), "paperback-bn"))
-            more.append(row(f"https://bookshop.org/search?keywords={pb['isbn13']}", "Paperback", "Bookshop.org", "paperback-bookshop"))
+            more.append(out_link(f"https://www.barnesandnoble.com/s/{pb['isbn13']}", "Barnes &amp; Noble", "paperback-bn", slug))
+            more.append(out_link(f"https://bookshop.org/search?keywords={pb['isbn13']}", "Bookshop.org", "paperback-bookshop", slug))
     if book.get("audiobook"):
-        ab = book["audiobook"]
-        more.append(row(ab["url"], "Audiobook", f"Narrated by {ab['narrator']}", "audiobook"))
-    more.append(row(book["goodreads"], "Add on Goodreads", "", "goodreads"))
+        more.append(out_link(book["audiobook"]["url"], "Audiobook", "audiobook", slug))
+    more.append(out_link(book["goodreads"], "Add on Goodreads", "goodreads", slug))
 
     timer = ""
     if book["status"] == "preorder" and book.get("release_iso"):
         timer = countdown(book, f"{slug}-out")
-    note_line = ("Preorders download automatically on release day." if book["status"] == "preorder"
-                 else "Ebook exclusive to Amazon. Free to read with Kindle Unlimited." if book.get("kindle_unlimited")
-                 else "Ebook exclusive to Amazon.")
-    proof = f'<p class="bk-proof">{STAR}{e(book["proof"])}</p>' if book.get("proof") else ""
+    buy_note = ("Preorders download automatically on release day." if book["status"] == "preorder"
+                else "Ebook exclusive to Amazon. Free to read with Kindle Unlimited." if book.get("kindle_unlimited")
+                else "Ebook exclusive to Amazon.")
+    buy = f"""<div class="buybox">
+  {timer}
+  <div class="btn-row" style="flex-direction:column">{primary}{secondary}</div>
+  <p class="fine">{e(buy_note)}</p>
+  <div class="buy-more">{"".join(more)}</div>
+</div>"""
 
     spec_rows = [("Series", series_label(book)), ("Released", book["released"])]
     if book.get("pages"):
@@ -617,7 +640,6 @@ def build_book(book):
     blurb = "".join(f"<p>{e(p)}</p>" for p in book["blurb"])
     if book.get("series_note"):
         blurb += f'<p class="series-note">{e(book["series_note"])}</p>'
-    tags = '<ul class="tags">' + "".join(f"<li>{e(t)}</li>" for t in book["tropes"]) + "</ul>"
     note = ""
     if book.get("content_note"):
         note = f'<details class="note"><summary>Content note</summary><p>{e(book["content_note"])}</p></details>'
@@ -626,69 +648,67 @@ def build_book(book):
         quotes = '<div class="quotes">' + "".join(
             f'<blockquote><p>“{e(q["text"])}”</p><cite>{e(q["source"])}</cite></blockquote>' for q in book["quotes"]
         ) + "</div>"
+    proof = ""
+    if book.get("proof"):
+        proof = f'<p class="hero-proof"><span class="stars" aria-hidden="true">★★★★☆</span><span>{e(book["proof"])}</span></p>'
 
     strip = ""
     if book["series"] != "standalones":
         thumbs = "".join(
             f'<a href="{other}.html"{CURRENT if other == slug else ""}>'
-            f'<img src="{r}assets/covers/{e(BOOKS[other]["cover"])}" alt="" width="92" height="138" loading="lazy">'
-            f'Book {BOOKS[other]["number"]} · {e(BOOKS[other]["title"])}</a>'
+            f'<img src="{r}assets/covers/{e(BOOKS[other]["cover"])}" alt="{e(BOOKS[other]["title"])}, cover" width="120" height="180" loading="lazy">'
+            f'<span>Book {BOOKS[other]["number"]} · {e(BOOKS[other]["title"])}</span></a>'
             for other in s["books"]
         )
-        strip = f'<div><p class="kicker" style="margin-bottom:14px">{e(s["name"])}</p><div class="strip">{thumbs}</div></div>'
+        strip = f'<div style="margin-top:34px"><p class="kicker c-{s["accent"]}">Reading order</p><div class="strip">{thumbs}</div></div>'
 
     idx = s["books"].index(slug)
     next_up = []
     if book["series"] != "standalones" and idx + 1 < len(s["books"]):
         next_up.append(s["books"][idx + 1])
-    for candidate in ["ride", "hustle", "outside-the-ropes", "it-goes-on", "wreck"]:
+    for candidate in ["ride", "hustle", "outside-the-ropes", "it-goes-on"]:
         if candidate != slug and candidate not in next_up and BOOKS[candidate]["series"] != book["series"]:
             next_up.append(candidate)
-    next_cards = "".join(
-        shelf_card(BOOKS[n], r, short_label(BOOKS[n]), badge="Preorder" if BOOKS[n]["status"] == "preorder" else "", delay=round(i * 0.06, 2))
-        for i, n in enumerate(next_up[:4])
-    )
+    next_cards = "".join(rail_card(BOOKS[n], r) for n in next_up[:2])
 
-    join_headline = 'See the Wreck cover <span class="serif">first.</span>' if slug == "wreck" else None
-    body = f"""<section class="bk">
-  {hero_bg(cover_src)}
-  <div class="wrap bk-in">
-    <div class="bk-cover"><span data-tilt style="display:block"><img class="cover-art" src="{cover_src}" alt="{e(book['title'])} by Ashley Claudy, cover" width="340" height="510" fetchpriority="high"></span></div>
-    <div class="bk-copy">
-      <a class="back" href="{r}books.html">← All books</a>
-      <p class="kicker">{e(series_label(book))}</p>
-      <h1>{e(book['title'])}</h1>
-      <p class="bk-tag">{e(book['tagline'])}</p>
-      {proof}
-      {timer}
-      <div class="getit" data-dock-watch>
-        {primary}
-        {sample}
-        <p class="fine" style="margin:0;text-align:center">{e(note_line)}</p>
-      </div>
-      <div class="getmore">{"".join(more)}</div>
-    </div>
-  </div>
-</section>
-<section class="section" style="padding-top:clamp(24px,5vw,56px)">
-  <div class="wrap story">
-    <div class="col">
-      <div class="blurb reveal">{blurb}</div>
-      {tags}
-      {note}
-    </div>
-    <div class="col col-b reveal">
-      {spec}
-      {quotes}
-      {strip}
-    </div>
-  </div>
-</section>
-<section class="section" id="join" aria-label="Join the Crew" data-dock-watch style="padding-top:0"><div class="wrap reveal">{crew("book", join_headline)}</div></section>
-<section class="section" aria-labelledby="next-title" style="padding-top:0">
+    join_title = "See the Wreck cover first" if slug == "wreck" else None
+    share = share_btn(f"{book['title']} by Ashley Claudy", f"{book['tagline']} — {book['title']} by Ashley Claudy", abs_url(f"books/{slug}.html"), "Share this book")
+    body = f"""<section class="book-hero a-{book['accent']}" data-buybar-sentinel>
   <div class="wrap">
-    <div class="series-head reveal"><p class="kicker">Read next</p><h2 id="next-title">Keep going</h2></div>
-    <div class="grid-books">{next_cards}</div>
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="{r}books.html">Books</a><span aria-hidden="true">/</span><a href="{r}books.html#{s['id']}">{e(s['name'])}</a><span aria-hidden="true">/</span><span aria-current="page">{e(book['title'])}</span></nav>
+    <div class="book-grid">
+      <div class="book-cover reveal"><img src="{r}assets/covers/{e(book['cover'])}" alt="{e(book['title'])} by Ashley Claudy, cover" width="340" height="510" fetchpriority="high"></div>
+      <div>
+        <p class="kicker c-{book['accent']} reveal">{e(series_label(book))}</p>
+        <h1 class="book-title reveal reveal-d1">{e(book['title'])}</h1>
+        <p class="book-tag reveal reveal-d1"><em>{e(book['tagline'])}</em></p>
+        <div class="reveal reveal-d2">{proof}</div>
+        <div class="reveal reveal-d2">{buy}</div>
+        <div class="reveal reveal-d2" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">{share}</div>
+        {chips(book['tropes'])}
+        <div class="blurb reveal">{blurb}</div>
+        {note}
+        {quotes}
+        <div class="reveal">{spec}</div>
+        <div class="reveal">{strip}</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="band crew" aria-labelledby="join-title">
+  <div class="wrap crew-grid">
+    <div class="reveal">
+      <p class="kicker c-{book['accent']}">Join the Crew</p>
+      <h2 id="join-title">Bonus chapters, <em>free</em></h2>
+      <p class="lead">{e(SITE['newsletter']['crew_line'])}</p>
+    </div>
+    <div class="reveal reveal-d1">{crew_pass("book", title=join_title)}</div>
+  </div>
+</section>
+<section class="band-tight" aria-labelledby="next-title">
+  <div class="wrap">
+    <div class="section-head reveal"><p class="kicker">Read next</p><h2 id="next-title">Keep <em>going</em></h2></div>
+    <div class="rail">{next_cards}</div>
   </div>
 </section>"""
 
@@ -716,74 +736,70 @@ def build_book(book):
     if book["series"] != "standalones":
         title += f" · {s['name']} #{book['number']}"
     desc = f"{book['tagline']} {book['hook']} {kindle_label(book)}."
-    dock = {"label": short_cta(book), "url": amazon(book["kindle_asin"]), "store": "kindle-dock", "book": slug, "sec": "#join"}
-    return page(f"books/{slug}.html", title, desc, body, image=f"og/{slug}.jpg", jsonld=[ld_book],
-                theme=book["accent"], dock=dock)
+    return page(f"books/{slug}.html", title, desc, body, image=book["cover"], jsonld=[ld_book], buybar_book=book)
 
+
+# ---------- bonus / links / 404 ----------
 
 def build_bonus():
-    fan = "".join(
-        f'<img src="assets/covers/{e(BOOKS[s]["cover"])}" alt="" width="136" height="204">'
-        for s in ["hustle", "ride", "outside-the-ropes"]
+    covers = "".join(
+        f'<img src="assets/covers/{e(BOOKS[s]["cover"])}" alt="" width="64" height="96" loading="lazy">'
+        for s in ["ride", "hustle", "outside-the-ropes"]
     )
-    body = f"""<section class="solo t-blue">
-  {hero_bg("assets/covers/ride.jpg")}
-  <div class="solo-in">
-    <a class="logo" href="index.html">Ashley Claudy</a>
-    <div class="fan" aria-hidden="true">{fan}</div>
-    {crew("bonus")}
+    body = f"""<section class="solo">
+  <div class="wrap"><div class="solo-inner">
+    <div class="links-head">
+      <a class="logo" href="index.html">Ashley <em>Claudy</em></a>
+      <p class="kicker" style="justify-content:center;margin-top:12px">Street racers · fighters · football players</p>
+    </div>
+    <div class="mini-covers" aria-hidden="true">{covers}</div>
+    {crew_pass("bonus")}
     <p class="fine"><a href="books.html">Browse the books</a> · <a href="index.html">Home</a></p>
-  </div>
+  </div></div>
 </section>"""
     return page("bonus.html", "Free Bonus Chapters · Ashley Claudy",
                 "Join Ashley Claudy's Crew newsletter for free bonus chapters, the Wreck cover reveal, and ARC invites.",
-                body, solo=True, image="og/bonus.jpg")
-
-
-def lb_row(href, title, sub, *, cover=None, icon=None, hot=False, theme="", store=None, book="", external=True):
-    lead = (f'<img src="{e(cover)}" alt="" width="48" height="72">' if cover else f'<span class="lb-tile">{icon}</span>')
-    attrs = (f' target="_blank" rel="noopener" data-track="{e(store)}" data-book="{e(book)}"' if external else "")
-    cls = "lb-link" + (" hot" if hot else "") + (f" t-{theme}" if theme else "")
-    return f'<a class="{cls}" href="{e(href)}"{attrs}>{lead}<span><b>{e(title)}</b><small>{e(sub)}</small></span>{ARROW}</a>'
+                body, solo=True)
 
 
 def build_links():
     w, ride, hustle = wreck(), BOOKS["ride"], BOOKS["hustle"]
     rows = []
     if w["status"] == "preorder":
-        rows.append(lb_row(amazon(w["kindle_asin"]), "Preorder Wreck", f"Crowns & Chaos #2 · out {w['released']}",
-                           cover="assets/covers/wreck.jpg", hot=True, theme="ember", store="kindle-preorder", book="wreck"))
-    rows.append(lb_row(amazon(ride["kindle_asin"]), "Read Ride free", "Crowns & Chaos #1 · Kindle Unlimited",
-                       cover="assets/covers/ride.jpg", hot=w["status"] != "preorder", store="kindle", book="ride"))
-    rows.append(lb_row("bonus.html", "Free bonus chapters", "Join the Crew newsletter", icon=ICON_MAIL, external=False))
+        rows.append(f'{out_link(amazon(w["kindle_asin"]), f"Preorder Wreck <small>Crowns &amp; Chaos #2 · {e(w["released"])} · lands on your Kindle at midnight</small>", "kindle-preorder", "wreck", "btn btn-accent")}')
+    rows.append(f'{out_link(amazon(ride["kindle_asin"]), "Read Ride free <small>Kindle Unlimited · Crowns &amp; Chaos #1</small>", "kindle", "ride", "btn btn-primary")}')
+    rows.append('<a class="btn btn-ghost" href="bonus.html">Free bonus chapters <small>Join the Crew — cover reveals first</small></a>')
     if hustle.get("audiobook"):
-        rows.append(lb_row(hustle["audiobook"]["url"], "Hustle on audio", "Audible · college football romance",
-                           cover="assets/covers/hustle.jpg", theme="gold", store="audiobook", book="hustle"))
-    rows.append(lb_row("books.html", "All the books", "Reading order and where to buy", icon=ICON_BOOKS, external=False))
-    body = f"""<section class="solo t-blue">
-  {hero_bg("assets/covers/ride.jpg")}
-  <div class="solo-in">
-    <div class="avatar" aria-hidden="true">AC</div>
-    <h1>Ashley Claudy</h1>
-    <p class="solo-sub">{e(SITE['tagline'])}</p>
-    <div class="lb">{"".join(rows)}</div>
+        rows.append(f'{out_link(hustle["audiobook"]["url"], "Hustle audiobook <small>Listen on Audible</small>", "audiobook", "hustle", "btn btn-ghost")}')
+    rows.append('<a class="btn btn-ghost" href="books.html">All books <small>Reading order</small></a>')
+    covers = "".join(
+        f'<img src="assets/covers/{e(BOOKS[s]["cover"])}" alt="" width="64" height="96" loading="lazy">' for s in ["ride", "wreck", "hustle"]
+    )
+    body = f"""<section class="solo">
+  <div class="wrap"><div class="solo-inner">
+    <div class="links-head">
+      <a class="logo" href="index.html">Ashley <em>Claudy</em></a>
+      <p class="lead" style="font-size:.95rem;margin-top:10px">{e(SITE['tagline'])}</p>
+    </div>
+    <div class="mini-covers" aria-hidden="true">{covers}</div>
+    <div class="link-stack">{"".join(rows)}</div>
     {socials()}
-  </div>
+  </div></div>
 </section>"""
     return page("links.html", "Links · Ashley Claudy", "Every Ashley Claudy link in one place.", body, solo=True)
 
 
 def build_404():
-    body = """<section class="wrap notfound">
-  <p class="kicker">404</p>
-  <h1>Wrong <span class="serif" style="color:var(--glow)">turn.</span></h1>
-  <p class="lede">That page doesn't exist anymore. The books are still here.</p>
-  <div class="cta-row" style="max-width:420px"><a class="btn btn-glow" href="/books.html">See the books</a><a class="btn btn-line" href="/">Home</a></div>
-</section>"""
+    body = """<section class="e404"><div class="wrap">
+  <p class="kicker" style="justify-content:center">404</p>
+  <h1>Wrong <em>turn</em></h1>
+  <p class="lead" style="margin-inline:auto">That page doesn't exist anymore. The books are still here.</p>
+  <div class="btn-row" style="justify-content:center"><a class="btn btn-primary" href="/books.html">See the books</a><a class="btn btn-ghost" href="/">Home</a></div>
+</div></section>"""
     return page("404.html", "Page not found · Ashley Claudy", "This page doesn't exist.", body)
 
 
-FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#09090b"/><path d="M32 12l14 20-14 20L18 32z" fill="#3ec1ff"/><path d="M32 22l7 10-7 10-7-10z" fill="#09090b"/></svg>
+FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0a0a0d"/><text x="32" y="43" text-anchor="middle" font-family="Georgia,serif" font-size="30" font-weight="700" fill="#f6f1e7" letter-spacing="1">AC</text></svg>
 """
 
 
