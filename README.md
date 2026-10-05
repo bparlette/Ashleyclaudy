@@ -2,11 +2,15 @@
 
 Static author website for Ashley Claudy. No WordPress, no plugins, no database: plain HTML, CSS, and a little JavaScript, generated from two content files.
 
+## Design notes
+
+Cinematic, phone-first. Each book carries its own glow color (`accent` in `books.json`: blue, ember, gold, red, violet). Phones get a sticky buy bar that appears once the main buy button scrolls away and hides while the signup form is on screen. The exit popup only appears on desktop. Fonts (Bricolage Grotesque, Instrument Serif, Inter) are self-hosted in `assets/fonts/`, so there are no third-party font requests.
+
 ## Pages
 
 | Page | Job |
 |---|---|
-| `index.html` | Home: Ride hero, Wreck preorder countdown, "pick your kind of trouble" finder, newsletter, reading order, about |
+| `index.html` | Home: Ride hero with one-tap buy, trope marquee, swipeable book shelf, Wreck countdown, newsletter signup, about |
 | `books.html` | Every book by series, box set, where to buy |
 | `books/<book>.html` | One sales page per book: buy buttons, free sample, tropes, blurb, content note, series order, newsletter |
 | `bonus.html` | Distraction-free newsletter landing page. Use this URL in ads and the back matter of every book |
@@ -14,6 +18,10 @@ Static author website for Ashley Claudy. No WordPress, no plugins, no database: 
 | `404.html` | Not-found page |
 
 The build also writes `sitemap.xml`, `robots.txt`, and 301 redirects from the old WordPress URLs (`_redirects` for Netlify, `.htaccess` for Bluehost) so existing Google rankings and old links keep working.
+
+## See it on your computer
+
+Open `dist/index.html` in any browser (double-click it). Nothing else is needed. To preview after edits: `python3 build.py`, then reopen it.
 
 ## Editing content
 
@@ -36,7 +44,8 @@ This regenerates `dist/`, the folder that gets published. Python 3.9 or newer, n
 - **Wreck release day:** change Wreck's `"status": "preorder"` to `"out"`. The announcement bar, countdown, and preorder band disappear on their own.
 - **Reader quotes:** add real quotes to a book's `quotes` list: `{"text": "Couldn't put it down.", "source": "Goodreads reviewer"}`. Only use real reviews, with permission where needed.
 - **Author photo:** put a square photo at `assets/img/ashley.jpg` and set `"author_photo": "assets/img/ashley.jpg"` in `site.json`.
-- **Sharper covers:** the covers are 333 by 500 pixels. Drop in larger versions (around 1000 by 1500) with the same file names.
+- **Sharper covers:** the covers are 333 by 500 pixels. Drop in larger versions (around 1000 by 1500) with the same file names. Cover art is the one thing holding the design back, so sharper files make the biggest visual upgrade.
+- **Share cards:** the 1200 by 630 images people see when a link is shared on Facebook, TikTok, iMessage, and X live in `assets/og/`. After changing a cover, title, or tagline, run `node tools/make-share-cards.js`, then rebuild.
 
 ## Turn on the built-in signup form (2 minutes)
 

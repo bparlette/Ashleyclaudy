@@ -1,9 +1,12 @@
 (function () {
   "use strict";
 
+  var root = document.documentElement;
   var MODAL_KEY = "ac_join_modal_seen";
   var JOINED_KEY = "ac_joined";
   var MODAL_COOLDOWN_DAYS = 14;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var finePointer = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   function store(key, value) {
     try {
@@ -23,8 +26,29 @@
     } catch (e) {}
   }
 
+  if (store(JOINED_KEY) === "1") root.classList.add("joined");
+
+  /* ---------- header turns solid after the hero ---------- */
+  var head = document.querySelector(".site-head");
+  if (head) {
+    var onScroll = function () { head.classList.toggle("scrolled", window.scrollY > 24); };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  var menu = document.querySelector(".menu");
+  if (menu) {
+    menu.addEventListener("click", function (e) {
+      if (e.target.closest(".menu-panel a")) menu.removeAttribute("open");
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") menu.removeAttribute("open");
+    });
+  }
+
   /* ---------- release countdown ---------- */
   function pad(n) { return n < 10 ? "0" + n : String(n); }
+
   document.querySelectorAll("[data-countdown]").forEach(function (board) {
     var target = new Date(board.getAttribute("data-countdown")).getTime();
     var cells = {
@@ -53,6 +77,11 @@
     }
   });
 
+  document.querySelectorAll("[data-days-until]").forEach(function (el) {
+    var days = Math.floor((new Date(el.getAttribute("data-days-until")).getTime() - Date.now()) / 86400000);
+    if (days > 0) el.textContent = String(days);
+  });
+
   /* ---------- newsletter forms ---------- */
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -65,6 +94,7 @@
     function showDone() {
       form.hidden = true;
       if (doneEl) doneEl.hidden = false;
+      root.classList.add("joined");
       store(JOINED_KEY, "1");
     }
 
@@ -94,46 +124,89 @@
     });
   });
 
-  /* ---------- join modal ---------- */
+  /* ---------- desktop-only exit popup (never on phones) ---------- */
   var modal = document.getElementById("join-modal");
-  if (modal && typeof modal.showModal === "function") {
+  if (modal && finePointer && typeof modal.showModal === "function") {
     var seen = parseInt(store(MODAL_KEY) || "0", 10);
     var cooled = !seen || Date.now() - seen > MODAL_COOLDOWN_DAYS * 86400000;
     var shown = false;
 
-    function openModal(reason) {
+    var openModal = function (reason) {
       if (shown || store(JOINED_KEY) === "1" || !cooled) return;
-      if (document.querySelector("dialog[open]")) return;
+      if (document.querySelector("dialog[open]") || document.getElementById("join") && isVisible(document.getElementById("join"))) return;
       shown = true;
       store(MODAL_KEY, String(Date.now()));
       modal.showModal();
       track("Join Modal Shown", { reason: reason });
-    }
+    };
+    var isVisible = function (el) {
+      var r = el.getBoundingClientRect();
+      return r.top < window.innerHeight && r.bottom > 0;
+    };
 
-    setTimeout(function () { openModal("timer"); }, 40000);
-    window.addEventListener("scroll", function onScroll() {
-      var depth = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
-      if (depth > 0.7) {
-        window.removeEventListener("scroll", onScroll);
-        openModal("scroll");
-      }
-    }, { passive: true });
+    setTimeout(function () { openModal("timer"); }, 60000);
     document.addEventListener("mouseout", function (e) {
       if (!e.relatedTarget && e.clientY <= 0) openModal("exit");
     });
-
     modal.addEventListener("click", function (e) {
       if (e.target === modal || e.target.closest("[data-close]")) modal.close();
     });
   }
 
-  document.querySelectorAll("[data-open-join]").forEach(function (btn) {
-    btn.addEventListener("click", function (e) {
-      if (!modal || typeof modal.showModal !== "function") return;
-      e.preventDefault();
-      modal.showModal();
+  /* ---------- sticky buy bar (phones) ---------- */
+  var dock = document.querySelector(".dock");
+  if (dock && "IntersectionObserver" in window) {
+    var watched = document.querySelectorAll("[data-dock-watch]");
+    var visible = new Set();
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) visible.add(en.target); else visible.delete(en.target);
+      });
+      dock.classList.toggle("on", visible.size === 0);
+    }, { rootMargin: "0px 0px -72px 0px" });
+    watched.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ---------- scroll reveal ---------- */
+  var revealEls = document.querySelectorAll(".reveal");
+  if (revealEls.length) {
+    if ("IntersectionObserver" in window && !reduceMotion) {
+      var rio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            en.target.classList.add("in");
+            rio.unobserve(en.target);
+          }
+        });
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+      revealEls.forEach(function (el) { rio.observe(el); });
+      setTimeout(function () { revealEls.forEach(function (el) { el.classList.add("in"); }); }, 6000);
+    } else {
+      revealEls.forEach(function (el) { el.classList.add("in"); });
+    }
+  }
+
+  /* ---------- cover tilt (mouse only) ---------- */
+  if (finePointer && !reduceMotion) {
+    document.querySelectorAll("[data-tilt]").forEach(function (el) {
+      var raf = 0;
+      el.addEventListener("pointermove", function (e) {
+        var b = el.getBoundingClientRect();
+        var px = (e.clientX - b.left) / b.width - 0.5;
+        var py = (e.clientY - b.top) / b.height - 0.5;
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(function () {
+          el.style.setProperty("--ry", (px * 12).toFixed(2) + "deg");
+          el.style.setProperty("--rx", (-py * 12).toFixed(2) + "deg");
+        });
+      });
+      el.addEventListener("pointerleave", function () {
+        cancelAnimationFrame(raf);
+        el.style.setProperty("--ry", "0deg");
+        el.style.setProperty("--rx", "0deg");
+      });
     });
-  });
+  }
 
   /* ---------- outbound click tracking ---------- */
   document.addEventListener("click", function (e) {
