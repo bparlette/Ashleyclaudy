@@ -695,8 +695,35 @@ def build_privacy():
     return page("privacy.html", "Privacy Policy · Ashley Claudy", "How Ashley Claudy's website handles your email address, analytics, and browser storage.", body)
 
 
-def reviews_section(slugs=None, *, title='Straight from <span class="serif">Goodreads.</span>', top_pad=True):
-    items = [r for r in REVIEWS if r["book"] in BOOKS and (not slugs or r["book"] in slugs)]
+def featured_reviews(slug, n=3):
+    pool = [r for r in REVIEWS if r["book"] == slug and r["rating"] == 5 and 50 <= len(r["text"]) <= 230]
+    pool.sort(key=lambda r: abs(len(r["text"]) - 130))
+    return pool[:n] if len(pool) >= n else []
+
+
+def reader_favorites(slug, book):
+    picks = featured_reviews(slug)
+    if not picks:
+        return ""
+    cards = "".join(
+        f"""<figure class="qc t-{book['accent']} reveal" style="--d:{round(i * 0.08, 2)}s">
+  <span class="rv-badge">★ Highly rated</span>
+  <blockquote>“{e(r['text'])}”</blockquote>
+  <figcaption><b>{e(r['name'])}</b> · {e(r['source'])} review{out_link(r['source_url'], "Read it", "review-source", slug, "rv-link")}</figcaption>
+</figure>"""
+        for i, r in enumerate(picks)
+    )
+    return f"""<section class="section" style="padding-bottom:0" aria-labelledby="fav-title">
+  <div class="wrap"><div class="sec-head reveal">
+    <p class="kicker">Reader favorites</p>
+    <h2 class="h2" id="fav-title">Why readers love <span class="serif">{e(book['title'])}.</span></h2>
+  </div>
+  <div class="qc-grid">{cards}</div></div>
+</section>"""
+
+
+def reviews_section(slugs=None, *, title='What readers <span class="serif">say.</span>', top_pad=True, exclude=()):
+    items = [r for r in REVIEWS if r["book"] in BOOKS and (not slugs or r["book"] in slugs) and r not in exclude]
     if slugs and len(items) < 2:
         return ""
     if not items:
@@ -714,10 +741,11 @@ def reviews_section(slugs=None, *, title='Straight from <span class="serif">Good
     for i, r in enumerate(mixed):
         b = BOOKS[r["book"]]
         source_label = r.get("source", "Goodreads")
+        badge = '<span class="rv-badge">★ Highly rated</span>' if r["rating"] == 5 else ""
         cards += f"""<figure class="rv-card t-{b['accent']}">
-  <div class="rv-top">{stars_html(r['rating'])}<span class="rv-book">{e(b['title'])}</span></div>
+  <div class="rv-top">{stars_html(r['rating'])}{badge}<span class="rv-book">{e(b['title'])}</span></div>
   <blockquote>“{e(r['text'])}”</blockquote>
-  <figcaption><b>{e(r['name'])}</b><span>{e(source_label)} review</span>{out_link(r['source_url'], "Read reviews", "review-source", r['book'], "rv-link")}</figcaption>
+  <figcaption><b>{e(r['name'])}</b><span>{e(source_label)} review</span>{out_link(r['source_url'], "Read the full review" if r.get("source") == "Amazon" else "Read reviews", "review-source", r['book'], "rv-link")}</figcaption>
 </figure>"""
     email = SITE.get("contact_email", "")
     pad = "" if top_pad else ' style="padding-top:0"'
@@ -734,7 +762,7 @@ def reviews_section(slugs=None, *, title='Straight from <span class="serif">Good
       <button class="rv-btn" type="button" data-rv="next" aria-label="Next review">→</button>
     </div>
   </div>
-  <div class="wrap"><p class="fine rv-note">Excerpts from public Goodreads reviews, quoted as written, with each reviewer's display name. Want yours taken down? Email {e(email)}.</p></div>
+  <div class="wrap"><p class="fine rv-note">Excerpts from public reader reviews on Goodreads, Amazon and StoryGraph, quoted as written, with each reviewer's display name. Want yours taken down? Email {e(email)}.</p></div>
 </section>"""
 
 
@@ -1412,7 +1440,8 @@ def build_book(book):
   </div>
 </section>
 {trailer_section(book, r)}
-{reviews_section([slug], title=f'Readers on <span class="serif">{e(book["title"])}.</span>', top_pad=False)}
+{reader_favorites(slug, book)}
+{reviews_section([slug], title=f'More from <span class="serif">readers.</span>' if featured_reviews(slug) else f'Readers on <span class="serif">{e(book["title"])}.</span>', top_pad=False, exclude=featured_reviews(slug))}
 <section class="section" style="padding-top:clamp(24px,5vw,56px)">
   <div class="wrap story">
     <div class="col">

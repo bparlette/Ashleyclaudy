@@ -591,3 +591,12 @@ button.link{background:none;border-top:0;border-inline:0;cursor:pointer;font-fam
 .rv-prog{flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
 .rv-prog i{display:block;height:100%;width:20%;border-radius:4px;background:var(--glow);transition:transform .2s linear;transform-origin:left}
 .rv-note{margin-top:18px}
+
+/* ---------- 5-star badge + reader-favorite quote cards ---------- */
+.rv-top{flex-wrap:wrap}
+.rv-badge{display:inline-block;padding:5px 10px;border-radius:99px;border:1px solid rgba(var(--glow-rgb),.55);background:rgba(var(--glow-rgb),.14);color:var(--glow);font:700 10px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.qc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.qc{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:18px;padding:28px;border-radius:26px;border:1px solid var(--line-2);background:radial-gradient(90% 70% at 100% 0%,rgba(var(--glow-rgb),.18),transparent 62%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+.qc blockquote{margin:0;flex:1;font:italic 400 clamp(24px,5.4vw,32px)/1.2 var(--f-serif);text-wrap:pretty}
+.qc figcaption{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;width:100%;font-size:14px;color:var(--muted)}
+.qc figcaption b{color:var(--paper);font-weight:650}
