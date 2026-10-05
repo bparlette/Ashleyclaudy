@@ -1,0 +1,15 @@
+ErrorDocument 404 /404.html
+RewriteEngine On
+RewriteRule ^book/ride/?$ /books/ride.html [R=301,L,NE]
+RewriteRule ^book/hustle/?$ /books/hustle.html [R=301,L,NE]
+RewriteRule ^book/outside-the-ropes/?$ /books/outside-the-ropes.html [R=301,L,NE]
+RewriteRule ^book/inside-danger/?$ /books/inside-danger.html [R=301,L,NE]
+RewriteRule ^book/otherside-of-fear/?$ /books/otherside-of-fear.html [R=301,L,NE]
+RewriteRule ^book/it-goes-on/?$ /books/it-goes-on.html [R=301,L,NE]
+RewriteRule ^book-series/outside-the-ropes-series/?$ /books.html#outside-the-ropes [R=301,L,NE]
+RewriteRule ^book-author/ashley-claudy/?$ /books.html [R=301,L,NE]
+RewriteRule ^where-are-your-books/?$ /books.html#where-to-buy [R=301,L,NE]
+RewriteRule ^contact/?$ /#about [R=301,L,NE]
+RewriteRule ^803-2/?$ /links.html [R=301,L,NE]
+RewriteRule ^signup/?$ /bonus.html [R=301,L,NE]
+RewriteRule ^signup/?$ /bonus.html [R=301,L,NE]

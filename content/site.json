@@ -1,0 +1,50 @@
+{
+  "site_url": "https://ashleyclaudy.com",
+  "author": "Ashley Claudy",
+  "tagline": "New Adult romance with fast cars, hard hits, and love that breaks the rules.",
+  "meta_description": "Ashley Claudy writes New Adult romance: street racers and motorcycle clubs in Crowns & Chaos, boxing and danger in Outside the Ropes, and college football in Hustle. Read free in Kindle Unlimited.",
+  "bio": [
+    "Ashley Claudy writes New Adult romance about people who live a little too fast and love a little too hard: street racers, fighters, football players, and the women who can hold their own against all of them.",
+    "She's a mom, a wife, and a teacher. A perpetual learner fueled by coffee and a wild imagination, a proud University of Maryland alum, a late-night book junkie and a daytime dreamer."
+  ],
+  "location": "Maryland",
+  "author_photo": "",
+  "contact_email": "ashleyclaudy@gmail.com",
+
+  "amazon_affiliate_tag": "ashlclau-20",
+  "amazon_author_url": "http://author.to/AshleyClaudy",
+
+  "social": [
+    {"name": "TikTok", "handle": "@ashley.claudy", "url": "https://www.tiktok.com/@ashley.claudy"},
+    {"name": "Facebook", "handle": "AshleyClaudy", "url": "https://www.facebook.com/AshleyClaudy"},
+    {"name": "Instagram", "handle": "@ayclaudy", "url": "https://instagram.com/ayclaudy/"},
+    {"name": "Goodreads", "handle": "Ashley Claudy", "url": "https://www.goodreads.com/author/show/9875475.Ashley_Claudy"},
+    {"name": "Amazon", "handle": "Follow for new releases", "url": "http://author.to/AshleyClaudy"}
+  ],
+
+  "newsletter": {
+    "mailerlite_form_action": "",
+    "fallback_url": "https://in27bj.subscribepage.io/",
+    "magnet_title": "Free bonus chapters",
+    "magnet_pitch": "Join the Crew and get instant access to bonus chapters, plus the Wreck cover reveal before anyone else sees it.",
+    "crew_line": "The Crew is Ashley's reader newsletter. Release dates, sale prices, and ARC invites land here before they hit social media.",
+    "perks": [
+      "Bonus chapters you can't get anywhere else",
+      "The Wreck cover reveal, first",
+      "Advance reader copy (ARC) invites",
+      "Release-day alerts and sale prices"
+    ]
+  },
+
+  "analytics": {
+    "plausible_domain": "",
+    "ga4_id": "",
+    "meta_pixel_id": ""
+  },
+
+  "proof": [
+    {"figure": "13,000+", "label": "reader ratings on Goodreads"},
+    {"figure": "9,500+", "label": "readers rated Hustle"},
+    {"figure": "4", "label": "audiobooks from Tantor and Podium"}
+  ]
+}
