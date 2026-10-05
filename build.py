@@ -744,7 +744,7 @@ def trailer_section(book, r):
     return f"""<section class="theater" aria-label="{e(book['title'])} trailer">
   <div class="wrap theater-grid">
     <div class="{cls} reveal" data-trailer data-book="{e(book['slug'])}">
-      <video playsinline loop preload="none" poster="{e(poster)}" src="{e(r + t['src'])}"></video>
+      <video playsinline muted loop preload="metadata" poster="{e(poster)}" src="{e(r + t['src'])}"></video>
       <button class="trailer-btn" type="button" aria-label="Play trailer"><span class="trailer-ico">{PLAY}</span><span class="sr-only">Watch the trailer</span></button>
     </div>
     <div class="theater-copy reveal">

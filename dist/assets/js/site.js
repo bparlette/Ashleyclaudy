@@ -367,25 +367,42 @@
     });
   });
 
-  /* ---------- trailer video ---------- */
+  /* ---------- trailer video: plays on its own (muted) when scrolled into view, pauses when it leaves ---------- */
+  var calm = reduceMotion || (navigator.connection && navigator.connection.saveData);
   document.querySelectorAll("[data-trailer]").forEach(function (wrap) {
     var v = wrap.querySelector("video");
     var btn = wrap.querySelector(".trailer-btn");
     if (!v || !btn) return;
-    btn.addEventListener("click", function () {
-      if (v.paused) {
-        v.muted = false;
-        v.play().then(function () { track("Trailer Play", { book: wrap.getAttribute("data-book") }); }).catch(function () {});
-      } else {
-        v.pause();
+    var userPaused = !!calm;
+    var counted = false;
+    v.muted = true;
+
+    function play(manual) {
+      var p = v.play();
+      if (p && p.then) {
+        p.then(function () {
+          if (!counted) {
+            counted = true;
+            track(manual ? "Trailer Play" : "Trailer Autoplay", { book: wrap.getAttribute("data-book") });
+          }
+        }).catch(function () {});
       }
+    }
+
+    btn.addEventListener("click", function () {
+      if (v.paused) { userPaused = false; play(true); }
+      else { userPaused = true; v.pause(); }
     });
     v.addEventListener("play", function () { wrap.classList.add("playing"); });
     v.addEventListener("pause", function () { wrap.classList.remove("playing"); });
+
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (entries) {
-        entries.forEach(function (en) { if (!en.isIntersecting && !v.paused) v.pause(); });
-      }, { threshold: 0.2 }).observe(wrap);
+        entries.forEach(function (en) {
+          if (en.intersectionRatio >= 0.5 && v.paused && !userPaused) play(false);
+          else if (en.intersectionRatio < 0.25 && !v.paused) v.pause();
+        });
+      }, { threshold: [0, 0.25, 0.5, 0.75] }).observe(wrap);
     }
   });
 

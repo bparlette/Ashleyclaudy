@@ -68,7 +68,7 @@ Run these from the repo root, then `python3 build.py`. They need Node, Playwrigh
 
 | Command | What it makes |
 |---|---|
-| `node tools/make-trailers.js` | A 12-second 1080×1920 trailer, a story image, and a thumbnail for every book in `assets/video/`, built from each book's own hook, tropes, tagline, and cover. Trailers show up on book pages and on the Creators page automatically. Add `ride,wreck` to redo only some books. |
+| `node tools/make-trailers.js` | A 12-second 1080×1920 trailer, a story image, and a thumbnail for every book in `assets/video/`, built from each book's own hook, tropes, tagline, and cover. Trailers show up on book pages and on the Creators page automatically, and play muted on their own when scrolled into view (they pause when scrolled away, and stay off for readers with reduced-motion or data-saver on). Add `ride,wreck` to redo only some books. |
 | `node tools/make-share-cards.js` | The 1200×630 link-share images in `assets/og/`. |
 | `node tools/make-icons.js` | Home-screen icons in `assets/icons/`. |
 
