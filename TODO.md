@@ -38,7 +38,9 @@
 - [ ] For a sale (Countdown Deal, BookBub feature): fill `site.json` → `promo`, rebuild, deploy
 
 ## Content upgrades (when available)
-- [ ] Paste real TikTok/Instagram post links into `content/fan.json` to switch on the live social feed
+- [x] Social feed live with her top TikTok posts (add more with `python3 tools/add-post.py`)
+- [ ] Confirm the like counts for two posts: link `7147325034946678059` (shown, no likes yet) and `7188492021064060202` (hidden One Tree Hill clip). They were listed as 55.4K and 53.8K but the captions and links were swapped
+- [ ] Decide whether to show the three TV-clip posts (One Tree Hill x2, House of the Dragon); they are saved but hidden because they aren't about her books
 - [ ] Replace the TikTok Linktree (linktr.ee/ashleyclaudy) with `ashleyclaudy.com/links.html` once the domain is live
 - [ ] Audiobook samples: only after written OK from Podium / Tantor, then add `audio_sample` in `books.json`
 - [ ] Wreck real cover: replace `assets/covers/wreck.jpg` (same file name), update `blurb`/`tropes`/`hook` in `content/books.json`, regen share cards (`node tools/make-share-cards.js`), rebuild

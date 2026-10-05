@@ -86,7 +86,7 @@ Each of these stays off the site until its content exists, so nothing placeholde
 
 | Feature | Where to add it |
 |---|---|
-| **Social feed** on the home page | `content/fan.json` → `social_posts`: paste a public TikTok video URL (or Instagram post/reel URL) with an optional caption. Posts load only when a reader taps them. |
+| **Social feed** on the home page | Run `python3 tools/add-post.py <TikTok link> --likes 55K`. It checks the link with TikTok, saves the video's thumbnail into `assets/social/`, and adds the post to `content/fan.json` (use `--hide` to save one without showing it). Posts load TikTok only when a reader taps them. Photo posts aren't supported. |
 | **Reader quotes** on the home page | `content/fan.json` → `fan_wall`: short quotes with the reader's name. Only use ones you have permission for. |
 | **Trailer video** on a book page | `content/books.json` → that book's `"trailer": {"src": "assets/video/ride.mp4", "poster": "assets/video/ride.jpg", "vertical": true}`. Put the file in `assets/video/` (MP4, H.264, under about 15 MB). |
 | **Audio sample** on a book page | `"audio_sample": {"src": "assets/audio/hustle-sample.mp3"}`. Get written permission from the audiobook publisher (Podium or Tantor) before adding one. Never post ebook excerpts beyond Amazon's 10% rule while enrolled in Kindle Unlimited. |

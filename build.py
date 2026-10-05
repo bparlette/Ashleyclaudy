@@ -697,14 +697,19 @@ def embed_url(post):
 
 
 def feed_section():
-    posts = [p for p in FAN.get("social_posts", []) if p.get("platform") in PLATFORMS and embed_url(p)]
+    posts = [p for p in FAN.get("social_posts", []) if p.get("show", True) and p.get("platform") in PLATFORMS and embed_url(p)]
     if not posts:
         return ""
     cards = ""
     for i, p in enumerate(posts):
         label = PLATFORMS[p["platform"]]
-        cards += f"""<article class="post reveal" style="--d:{round(i * 0.06, 2)}s" data-embed="{e(embed_url(p))}">
-  <button class="post-play" type="button" aria-label="Play this {label} post"><span class="post-badge">{label}</span><span class="post-cap">{e(p.get("caption", ""))}</span><span class="post-go">{PLAY}</span></button>
+        thumb = p.get("thumb", "")
+        img = (f'<span class="post-bg" style="background-image:url({e(thumb)})"></span><img class="post-img" src="{e(thumb)}" alt="" width="270" height="480" loading="lazy">'
+               if thumb else "")
+        likes = f'<span class="post-likes">{e(p["likes"])} likes</span>' if p.get("likes") else ""
+        cap = f'<span class="post-cap">{e(p["caption"])}</span>' if p.get("caption") else ""
+        cards += f"""<article class="post reveal{" has-img" if thumb else ""}" style="--d:{round(i * 0.06, 2)}s" data-embed="{e(embed_url(p))}">
+  <button class="post-play" type="button" aria-label="Play this {label} post">{img}<span class="post-top"><span class="post-badge">{label}</span>{likes}</span>{cap}<span class="post-go">{PLAY}</span></button>
   <a class="post-open" href="{e(p["url"])}" target="_blank" rel="noopener" data-track="social-{p["platform"]}">Open on {label} {ARROW}</a>
 </article>"""
     follow = "".join(
@@ -713,11 +718,11 @@ def feed_section():
     )
     return f"""<section class="section" id="feed" aria-labelledby="feed-title">
   <div class="wrap"><div class="sec-head reveal">
-    <p class="kicker">Follow along</p>
-    <h2 class="h2" id="feed-title">Fresh from the <span class="serif">feed.</span></h2>
-    <p>The latest from Ashley's TikTok and Instagram. Tap a post to play it right here.</p>
+    <p class="kicker">Most loved</p>
+    <h2 class="h2" id="feed-title">Her most-loved <span class="serif">TikToks.</span></h2>
+    <p>The posts readers love most from @ashley.claudy. Tap one to play it right here.</p>
   </div></div>
-  <div class="shelf feed" tabindex="0" aria-label="Latest social posts">{cards}</div>
+  <div class="shelf feed" tabindex="0" aria-label="Most-loved TikTok posts">{cards}</div>
   <div class="shelf-foot feed-follow">{follow}</div>
 </section>"""
 

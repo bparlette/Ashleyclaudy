@@ -1,17 +1,88 @@
 {
   "_help": "Paste real, public content here and rebuild. Empty lists keep that section off the site. Only add reader quotes and fan art you have permission to use.",
-
-  "social_posts": [],
-  "_social_posts_example": {
-    "platform": "tiktok",
-    "url": "https://www.tiktok.com/@ashley.claudy/video/1234567890123456789",
-    "caption": "Optional one-line caption"
-  },
-
+  "social_posts": [
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7005192493822135557",
+      "caption": "Let the man celebrate",
+      "thumb": "assets/social/7005192493822135557.jpg",
+      "likes": "722K",
+      "show": true
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7147325034946678059",
+      "caption": "You spent a hot night with your school's star football player",
+      "thumb": "assets/social/7147325034946678059.jpg",
+      "likes": "",
+      "show": true,
+      "note": "Like count left off: it was listed as 55.4K or 53.8K and the two links were mixed up. Confirm, then add --likes."
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7213688557804817707",
+      "caption": "They protect each other",
+      "thumb": "assets/social/7213688557804817707.jpg",
+      "likes": "42K",
+      "show": true
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7138529978894814507",
+      "caption": "He’s careless with his words, but honest, and it makes for an angsty read!",
+      "thumb": "assets/social/7138529978894814507.jpg",
+      "likes": "32K",
+      "show": true
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7174723011801730350",
+      "caption": "But she’s not there when he gets back…",
+      "thumb": "assets/social/7174723011801730350.jpg",
+      "likes": "16K",
+      "show": true
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7238393464134749486",
+      "caption": "Shes trying to protect him, but she can't resist him.",
+      "thumb": "assets/social/7238393464134749486.jpg",
+      "likes": "15K",
+      "show": true
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7188492021064060202",
+      "caption": "He saw the opportunity and took it",
+      "thumb": "assets/social/7188492021064060202.jpg",
+      "likes": "",
+      "show": false,
+      "note": "One Tree Hill clip (TV fandom). Hidden: not about her books."
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7190543399471041835",
+      "caption": "The whole scene! And this song: Anthem",
+      "thumb": "assets/social/7190543399471041835.jpg",
+      "likes": "",
+      "show": false,
+      "note": "One Tree Hill clip (TV fandom). Hidden: not about her books."
+    },
+    {
+      "platform": "tiktok",
+      "url": "https://www.tiktok.com/@ashley.claudy/video/7152832432641838382",
+      "caption": "The joy on his face while he challenges everyone. He’s got me out here messing up my algorithm and posting about him!",
+      "thumb": "assets/social/7152832432641838382.jpg",
+      "likes": "",
+      "show": false,
+      "note": "House of the Dragon clip (TV fandom). Hidden: not about her books."
+    }
+  ],
   "fan_wall": [],
   "_fan_wall_example": {
     "text": "A short reader quote or reaction.",
     "name": "Reader first name or handle",
     "source": "TikTok comment, Goodreads review, email"
-  }
+  },
+  "_social_help": "Add posts with: python3 tools/add-post.py <TikTok link> --likes 55K . \"show\": false keeps a post saved but off the site. Photo posts are not supported yet."
 }
