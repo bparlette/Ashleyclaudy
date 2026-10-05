@@ -1,6 +1,6 @@
 {
   "title": "Which kind of trouble are you?",
-  "intro": "Six quick questions. Tap the answer that sounds most like you, and we'll point you to the Ashley Claudy book to start with.",
+  "intro": "Six quick questions. Tap the answer that sounds most like you, and we'll point you to the book to start with.",
   "order": ["ride", "hustle", "outside-the-ropes", "it-goes-on"],
   "questions": [
     {

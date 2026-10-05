@@ -466,7 +466,7 @@
         lines.push(el.type === "checkbox" ? "- " + label : label + ": " + v);
       });
       var subject = (form.getAttribute("data-subject") || "Message from ashleyclaudy.com").replace("{book}", book);
-      var body = "Hi Ashley,\n\n" + (form.getAttribute("data-intro") || "") + "\n\n" + lines.join("\n") + "\n\nThanks!";
+      var body = "Hi,\n\n" + (form.getAttribute("data-intro") || "") + "\n\n" + lines.join("\n") + "\n\nThanks!";
       track("Email Form", { form: subject.split(":")[0] });
       var note = form.querySelector(".req-note");
       if (note) note.hidden = false;

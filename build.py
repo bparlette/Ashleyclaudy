@@ -539,7 +539,7 @@ def reaction_block(book=None):
     fields = f"""<label>Your name or handle<input class="input" name="name" data-label="Name or handle" required autocomplete="name"></label>
   <label>Which book<select class="input" name="book" data-label="Book">{opts}</select></label>
   <label>Your reaction<textarea class="input" name="reaction" data-label="Reaction" rows="3" required placeholder="One line about what you loved"></textarea></label>
-  <label class="check"><input type="checkbox" name="permission" data-label="OK to quote me with my name or handle on ashleyclaudy.com and Ashley's social pages" required><span>You may quote this with my name or handle on ashleyclaudy.com and Ashley's social pages.</span></label>"""
+  <label class="check"><input type="checkbox" name="permission" data-label="OK to quote me with my name or handle on this site and its social pages" required><span>You may quote this with my name or handle on this site and its social pages.</span></label>"""
     form = mailto_form("req", "Reader reaction: {book}", "A reaction for the site:", fields, "Open my email")
     return f"""<div class="crew reveal" id="react" style="grid-template-areas:'copy' 'form'">
   <div class="crew-copy">
@@ -590,7 +590,7 @@ def build_after(book):
   <div class="series-head reveal"><p class="kicker">A small favor</p><h2 id="fav-title">Two minutes that help <span class="serif" style="color:var(--glow)">a lot.</span></h2>
     <p>Honest reviews help other readers find the book. You never have to write one, and reviews can't be traded for anything.</p></div>
   <div class="cta-row reveal" style="max-width:560px">{review_btn}{gr_btn}</div>
-  <p class="reveal" style="margin-top:22px"><button class="link" type="button" data-share-link="{abs_url('books/' + slug + '.html')}" data-share-text="I just finished {e(book['title'])} by Ashley Claudy.">Tell a friend about it</button></p>
+  <p class="reveal" style="margin-top:22px"><button class="link" type="button" data-share-link="{abs_url('books/' + slug + '.html')}" data-share-text="I just finished {e(book['title'])}.">Tell a friend about it</button></p>
 </div></section>
 <section class="section" id="join" aria-label="Join the Crew" data-dock-watch style="padding-top:0"><div class="wrap reveal">{crew(f"after-{slug}", 'Never miss the <span class="serif">next one.</span>', slug)}</div></section>
 <section class="section" style="padding-top:0"><div class="wrap">{reaction_block(book)}</div></section>
@@ -623,7 +623,7 @@ def arc_form():
     <button class="btn btn-glow" type="submit">Apply for the ARC team {ARROW}</button>
     <p class="signup-note">You'll also join the Crew newsletter. <a href="{PRIVACY_HREF}">Privacy</a></p>
   </form>
-  <div class="signup-done" role="status" hidden><p class="done-title">Application received.</p><p>Ashley picks the team before release. Watch your inbox.</p></div>
+  <div class="signup-done" role="status" hidden><p class="done-title">Application received.</p><p>The team is picked before release. Watch your inbox.</p></div>
 </div>"""
     fields = f"""<label>Your name<input class="input" name="name" data-label="Name" required autocomplete="name"></label>
   <label>Link to your page or profile<input class="input" name="link" data-label="My page" required placeholder="tiktok.com/@you or goodreads.com/you"></label>
@@ -633,7 +633,7 @@ def arc_form():
 
 def build_arc():
     w = wreck()
-    what = "Wreck" if w["status"] == "preorder" else "Ashley's next release"
+    what = "Wreck" if w["status"] == "preorder" else "the next release"
     when = f"Wreck comes out {w['released']}." if w["status"] == "preorder" else "Applications stay open for the next release."
     body = f"""<section class="hero t-ember">
   {hero_bg("assets/covers/wreck.jpg")}
@@ -649,7 +649,7 @@ def build_arc():
       <p class="kicker">How it works</p>
       <h2>Apply in <span class="serif">a minute.</span></h2>
       <ul class="perks">
-        <li>Ashley picks the team and sends the book privately before release.</li>
+        <li>The team is picked before release and gets the book privately.</li>
         <li>You post an honest review on release day. Good or critical, it is your opinion.</li>
         <li>Say in your post that you received a free copy (for example #gifted).</li>
         <li>Reviews can't be exchanged for payment or rewards, and nobody is asked for a positive one.</li>
@@ -680,7 +680,7 @@ def build_privacy():
         ("Newsletter provider", "Newsletter signups are handled by MailerLite, which stores your email and sends our emails. Every email has an unsubscribe link. We do not sell or rent your email address."),
         ("Stored in your browser", "To remember your choices, the site saves small items in your browser's local storage: whether you joined the newsletter, your quiz result, your Amazon store choice, and which campaign link you arrived by. They stay on your device. You can clear them in your browser settings."),
         ("Analytics", analytics_p),
-        ("Amazon links", "Many buttons link to Amazon. As an Amazon Associate, Ashley earns from qualifying purchases. Amazon sets its own cookies when you visit it. We send visitors outside the US to their own Amazon store when we can tell where they are; you can change the store at the bottom of any page."),
+        ("Amazon links", "Many buttons link to Amazon. As an Amazon Associate, this site earns from qualifying purchases. Amazon sets its own cookies when you visit it. We send visitors outside the US to their own Amazon store when we can tell where they are; you can change the store at the bottom of any page."),
         ("Other companies", "TikTok, Instagram, and Spotify content loads only after you tap it, and then those companies' own policies apply. Fonts and images are hosted on this site."),
         ("Your choices", "Unsubscribe from any email, or write to us to see, correct, or delete what we hold about you. You can decline analytics cookies when asked, and clear your browser storage at any time. Depending on where you live, you may have extra rights under laws such as the GDPR or the California Consumer Privacy Act, and you can use them by writing to us."),
         ("Age", "The books are for readers 18 and older, and this site is not directed at children under 13."),
@@ -774,8 +774,8 @@ def feed_section():
     return f"""<section class="section" id="feed" aria-labelledby="feed-title">
   <div class="wrap"><div class="sec-head reveal">
     <p class="kicker">Most loved</p>
-    <h2 class="h2" id="feed-title">Her most-loved <span class="serif">TikToks.</span></h2>
-    <p>Ashley's most-loved posts. Tap one to play it right here.</p>
+    <h2 class="h2" id="feed-title">Most-loved <span class="serif">TikToks.</span></h2>
+    <p>The posts readers love most. Tap one to play it right here.</p>
   </div></div>
   <div class="shelf feed" tabindex="0" aria-label="Most-loved TikTok posts">{cards}</div>
   <div class="shelf-foot feed-follow">{follow}</div>
@@ -917,7 +917,7 @@ def quiz_band():
       <div class="qb-copy">
         <p class="kicker">Take the quiz</p>
         <h2>Which kind of <span class="serif">trouble</span> are you?</h2>
-        <p>Six questions. One Ashley Claudy book to start with.</p>
+        <p>Six questions. One book to start with.</p>
         <span class="btn btn-glow">Start the quiz {ARROW}</span>
       </div>
       <div class="qb-covers" aria-hidden="true">{covers}</div>
@@ -934,13 +934,13 @@ def follow_band():
     big = (f'<div class="fb-count"><b>{e(count)}</b><span>{e(tt["label"])}</span></div>' if count else "")
     buttons = (out_link(social_url("TikTok"), f"Follow {e(handle)} {ARROW}", "social-tiktok", "", "btn btn-glow")
                + out_link(social_url("Facebook"), "Follow on Facebook", "social-facebook", "", "btn btn-line"))
-    return f"""<section class="section" id="follow" style="padding-block:0 clamp(72px,11vw,136px)" aria-label="Follow Ashley">
+    return f"""<section class="section" id="follow" style="padding-block:0 clamp(72px,11vw,136px)" aria-label="Follow for updates">
   <div class="wrap">
     <div class="followband reveal">
       <div class="fb-copy">
         <p class="kicker">Follow along</p>
         <h2>{e(handle)}</h2>
-        <p>Book talk and new-release news, straight from Ashley.</p>
+        <p>Book talk and new-release news.</p>
         <div class="cta-row">{buttons}</div>
       </div>
       {big}
@@ -1012,7 +1012,7 @@ def build_creators():
   {hero_bg("assets/covers/ride.jpg")}
   <div class="wrap page-head">
     <p class="kicker">Creators &amp; press</p>
-    <h1>Make something with <span class="serif" style="color:var(--glow)">Ashley's books.</span></h1>
+    <h1>Make something with <span class="serif" style="color:var(--glow)">these books.</span></h1>
     <p class="lede">BookTok, Bookstagram, podcast, blog? Grab ready-made trailers and story images, copy a caption, and ask for a review copy. Tag @ashley.claudy and say hi.</p>
   </div>
 </section>
@@ -1032,7 +1032,7 @@ def build_creators():
       <div class="crew-copy">
         <p class="kicker">Review copies</p>
         <h2 id="req-title">Ask for a <span class="serif">copy.</span></h2>
-        <p class="lede">Tell Ashley where you post and which book you want. This opens your email app with the request filled in.</p>
+        <p class="lede">Tell us where you post and which book you want. This opens your email app with the request filled in.</p>
         <p class="fine">If you get a free copy, please say so in your post (for example #gifted). Reviews can't be exchanged for payment or rewards, and honest opinions are always welcome.</p>
       </div>
       <div class="signup-wrap">
@@ -1217,7 +1217,7 @@ def build_home():
     about = f"""<section class="section" id="about" aria-labelledby="about-title" style="padding-top:0">
   <div class="wrap about-grid">
     <div class="reveal">
-      <p class="kicker" id="about-title" style="margin-bottom:22px">About Ashley</p>
+      <p class="kicker" id="about-title" style="margin-bottom:22px">The author</p>
       <p class="about-quote">{e(bio[0])}</p>
     </div>
     <div class="about-copy reveal">
@@ -1277,7 +1277,7 @@ def build_books():
   <div class="wrap">
     <div class="series-head reveal"><p class="kicker">Where to buy</p><h2 id="where-title">Ebooks, paperbacks, audio</h2></div>
     <div class="where reveal">
-      <div><h3>Ebooks</h3><p>Ashley's ebooks are exclusive to Amazon. Buy them there, or read them free with a Kindle Unlimited subscription.</p>
+      <div><h3>Ebooks</h3><p>The ebooks are exclusive to Amazon. Buy them there, or read them free with a Kindle Unlimited subscription.</p>
         {out_link("https://www.amazon.com/kindle-dbs/hz/subscribe/ku", f"About Kindle Unlimited {ARROW}", "ku-info", "", "link")}</div>
       <div><h3>No Kindle?</h3><p>The free Kindle app works on any phone, tablet, or computer. Download it, buy or borrow the book, and it appears in the app.</p>
         {out_link("https://www.amazon.com/kindle-dbs/fd/kcp", f"Get the free Kindle app {ARROW}", "kindle-app", "", "link")}</div>
