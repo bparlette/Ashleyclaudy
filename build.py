@@ -1665,8 +1665,7 @@ def build(out: Path):
     (out / "sitemap.xml").write_text(
         f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n')
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {abs_url('sitemap.xml')}\n")
-    (out / "_redirects").write_text("".join(f"{old} {new} 301\n" for old, new in OLD_URLS.items())
-                                    + "/after/:slug /after/:slug.html 200\n/arc /arc.html 200\n/privacy /privacy.html 200\n")
+    (out / "_redirects").write_text("".join(f"{old} {new} 301\n" for old, new in OLD_URLS.items()))
     htaccess = ["ErrorDocument 404 /404.html", "RewriteEngine On"]
     for old, new in OLD_URLS.items():
         pattern = "^" + old.lstrip("/").rstrip("/") + "/?$"
