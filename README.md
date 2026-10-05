@@ -15,6 +15,7 @@ Cinematic, phone-first. Each book carries its own glow color (`accent` in `books
 | `books/<book>.html` | One sales page per book: buy buttons, free sample, tropes, blurb, content note, series order, newsletter |
 | `bonus.html` | Distraction-free newsletter landing page. Use this URL in ads and the back matter of every book |
 | `links.html` | Link-in-bio page for TikTok, Instagram, and Facebook |
+| `quiz.html` | "Which kind of trouble are you?" quiz that ends in a book recommendation and signup |
 | `404.html` | Not-found page |
 
 The build also writes `sitemap.xml`, `robots.txt`, and 301 redirects from the old WordPress URLs (`_redirects` for Netlify, `.htaccess` for Bluehost) so existing Google rankings and old links keep working.
@@ -46,6 +47,23 @@ This regenerates `dist/`, the folder that gets published. Python 3.9 or newer, n
 - **Author photo:** put a square photo at `assets/img/ashley.jpg` and set `"author_photo": "assets/img/ashley.jpg"` in `site.json`.
 - **Sharper covers:** the covers are 333 by 500 pixels. Drop in larger versions (around 1000 by 1500) with the same file names. Cover art is the one thing holding the design back, so sharper files make the biggest visual upgrade.
 - **Share cards:** the 1200 by 630 images people see when a link is shared on Facebook, TikTok, iMessage, and X live in `assets/og/`. After changing a cover, title, or tagline, run `node tools/make-share-cards.js`, then rebuild.
+
+## Fan features (add content, rebuild, they appear)
+
+Each of these stays off the site until its content exists, so nothing placeholder ever shows.
+
+| Feature | Where to add it |
+|---|---|
+| **Social feed** on the home page | `content/fan.json` → `social_posts`: paste a public TikTok video URL (or Instagram post/reel URL) with an optional caption. Posts load only when a reader taps them. |
+| **Reader quotes** on the home page | `content/fan.json` → `fan_wall`: short quotes with the reader's name. Only use ones you have permission for. |
+| **Trailer video** on a book page | `content/books.json` → that book's `"trailer": {"src": "assets/video/ride.mp4", "poster": "assets/video/ride.jpg", "vertical": true}`. Put the file in `assets/video/` (MP4, H.264, under about 15 MB). |
+| **Audio sample** on a book page | `"audio_sample": {"src": "assets/audio/hustle-sample.mp3"}`. Get written permission from the audiobook publisher (Podium or Tantor) before adding one. Never post ebook excerpts beyond Amazon's 10% rule while enrolled in Kindle Unlimited. |
+| **Playlist** on a book page | `"playlist": {"url": "https://open.spotify.com/playlist/..."}` |
+| **Character cards** on a book page | `"characters": [{"name": "...", "line": "one sentence"}]` |
+| **Quiz** (`quiz.html`) | Questions and scoring live in `content/quiz.json`. Each answer adds points to books; the highest total is the reader's result, ties go to the earlier book in `order`. Results are shareable links such as `quiz.html#hustle`. |
+| **Wreck calendar reminders** | Automatic while Wreck is on preorder: a Google Calendar link and a downloadable `wreck-release.ics` file. |
+
+Events reported to analytics (when it is switched on): `Quiz Started`, `Quiz Completed` (with the result), `Quiz Share`, `Social Post Played`, `Trailer Play`, `Audio Sample Play`, `Playlist Played`.
 
 ## Turn on the built-in signup form (2 minutes)
 

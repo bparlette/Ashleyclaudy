@@ -7,8 +7,10 @@
 import argparse
 import html
 import json
+import re
 import shutil
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
+from urllib.parse import quote
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -17,6 +19,8 @@ MARKER = ".ashleyclaudy-build"
 
 SITE = json.loads((ROOT / "content/site.json").read_text())
 CATALOG = json.loads((ROOT / "content/books.json").read_text())
+FAN = json.loads((ROOT / "content/fan.json").read_text())
+QUIZ = json.loads((ROOT / "content/quiz.json").read_text())
 BOOKS = {b["slug"]: b for b in CATALOG["books"]}
 SERIES = {s["id"]: s for s in CATALOG["series"]}
 
@@ -39,6 +43,11 @@ SHELF = [
     ("outside-the-ropes", "Boxing · Trilogy"),
     ("it-goes-on", "Secrets & money"),
 ]
+
+MOODS = dict(SHELF)
+PLATFORMS = {"tiktok": "TikTok", "instagram": "Instagram"}
+PLAY = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>')
+PAUSE = ('<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>')
 
 OLD_URLS = {
     "/book/ride/": "/books/ride.html",
@@ -172,7 +181,7 @@ def analytics():
 
 
 def header(r, current=""):
-    items = [("books.html", "Books")]
+    items = [("books.html", "Books"), ("quiz.html", "Quiz")]
     if wreck()["status"] == "preorder":
         items.append(("books/wreck.html", "Wreck"))
     items.append(("index.html#about", "About"))
@@ -219,6 +228,7 @@ def footer(r):
   <div class="wrap foot-grid">
     <nav class="foot-nav" aria-label="Footer">
       <a href="{r}books.html">Books</a>
+      <a href="{r}quiz.html">Quiz</a>
       <a href="{r}bonus.html">Bonus chapters</a>
       <a href="{r}books.html#where-to-buy">Where to buy</a>
       <a href="{r}links.html">Links</a>
@@ -287,7 +297,7 @@ def dock_html(dock):
     return f'<div class="dock" role="region" aria-label="Quick actions">{primary}{secondary}</div>'
 
 
-def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, solo=False, current="", theme="blue", dock=None):
+def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, solo=False, current="", theme="blue", dock=None, extra_js=()):
     r = "/" if path == "404.html" else "../" * path.count("/")
     canonical = abs_url("" if path == "index.html" else path)
     ld = "".join(
@@ -320,6 +330,7 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
     chrome_top = "" if solo else header(r, current)
     chrome_bottom = "" if solo else footer(r) + join_modal()
     dock_markup = dock_html(dock) if dock else ""
+    extra_scripts = "\n".join(f'<script src="{r}assets/js/{name}" defer></script>' for name in extra_js)
     body_class = f"t-{theme}" + (" has-dock" if dock else "")
     content = f"""{chrome_top}
 <main id="main">
@@ -328,7 +339,8 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
 {chrome_bottom}
 {dock_markup}
 {ml_frame}
-<script src="{r}assets/js/site.js" defer></script>"""
+<script src="{r}assets/js/site.js" defer></script>
+{extra_scripts}"""
 
     return f"""<!doctype html>
 <html lang="en">
@@ -396,6 +408,166 @@ def countdown(book, done_id):
   <div class="board-cell"><span class="board-num" data-unit="s">00</span><span class="board-unit">Sec</span></div>
 </div>
 <p class="lede" id="{done_id}" hidden>Out now on Kindle.</p>"""
+
+
+
+# ---------- fan features (each one renders only when its content exists) ----------
+
+def embed_url(post):
+    url = post.get("url", "").strip()
+    if post.get("platform") == "tiktok":
+        m = re.search(r"/video/(\d+)", url)
+        return f"https://www.tiktok.com/embed/v2/{m.group(1)}" if m else ""
+    if post.get("platform") == "instagram" and url:
+        return url.split("?")[0].rstrip("/") + "/embed"
+    return ""
+
+
+def feed_section():
+    posts = [p for p in FAN.get("social_posts", []) if p.get("platform") in PLATFORMS and embed_url(p)]
+    if not posts:
+        return ""
+    cards = ""
+    for i, p in enumerate(posts):
+        label = PLATFORMS[p["platform"]]
+        cards += f"""<article class="post reveal" style="--d:{round(i * 0.06, 2)}s" data-embed="{e(embed_url(p))}">
+  <button class="post-play" type="button" aria-label="Play this {label} post"><span class="post-badge">{label}</span><span class="post-cap">{e(p.get("caption", ""))}</span><span class="post-go">{PLAY}</span></button>
+  <a class="post-open" href="{e(p["url"])}" target="_blank" rel="noopener" data-track="social-{p["platform"]}">Open on {label} {ARROW}</a>
+</article>"""
+    follow = "".join(
+        out_link(social_url(name), f"Follow on {name}", f"social-{name.lower()}", "", "btn btn-line")
+        for name in ("TikTok", "Instagram")
+    )
+    return f"""<section class="section" id="feed" aria-labelledby="feed-title">
+  <div class="wrap"><div class="sec-head reveal">
+    <p class="kicker">Follow along</p>
+    <h2 class="h2" id="feed-title">Fresh from the <span class="serif">feed.</span></h2>
+    <p>The latest from Ashley's TikTok and Instagram. Tap a post to play it right here.</p>
+  </div></div>
+  <div class="shelf feed" tabindex="0" aria-label="Latest social posts">{cards}</div>
+  <div class="shelf-foot feed-follow">{follow}</div>
+</section>"""
+
+
+def trailer_section(book, r):
+    t = book.get("trailer") or {}
+    if not t.get("src"):
+        return ""
+    poster = f"{r}{t['poster']}" if t.get("poster") else f"{r}assets/covers/{book['cover']}"
+    cls = "trailer" + ("" if t.get("vertical") is False else " v")
+    return f"""<section class="section" style="padding-block:0 clamp(40px,6vw,72px)" aria-label="{e(book['title'])} trailer">
+  <div class="wrap"><div class="{cls} reveal" data-trailer data-book="{e(book['slug'])}">
+    <video playsinline loop preload="metadata" poster="{e(poster)}" src="{e(r + t['src'])}"></video>
+    <button class="trailer-btn" type="button" aria-label="Play trailer"><span class="trailer-ico">{PLAY}</span><span class="trailer-label">Watch the trailer</span></button>
+  </div></div>
+</section>"""
+
+
+def audio_block(book, r):
+    a = book.get("audio_sample") or {}
+    if not a.get("src"):
+        return ""
+    who = a.get("narrator") or (book.get("audiobook") or {}).get("narrator", "")
+    sub = f"Narrated by {e(who)}" if who else "Audiobook sample"
+    return f"""<div class="audio reveal" data-audio data-book="{e(book['slug'])}">
+  <button class="audio-btn" type="button" aria-label="Play audio sample">{PLAY}</button>
+  <div class="audio-meta"><b>Hear a sample</b><small>{sub}</small>
+    <input class="audio-range" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek" disabled></div>
+  <span class="audio-time">0:00</span>
+  <audio preload="none" src="{e(r + a['src'])}"></audio>
+</div>"""
+
+
+def playlist_block(book):
+    url = (book.get("playlist") or {}).get("url", "")
+    m = re.search(r"open\.spotify\.com/(?:embed/)?playlist/([A-Za-z0-9]+)", url)
+    if not m:
+        return ""
+    return f"""<div class="playlist reveal" data-embed="https://open.spotify.com/embed/playlist/{m.group(1)}">
+  <p class="kicker">Soundtrack</p>
+  <div class="playlist-row"><button class="btn btn-line btn-sm" type="button" data-playlist>Play the {e(book['title'])} playlist</button>
+  {out_link(url, f"Open in Spotify {ARROW}", "playlist", book['slug'], "link")}</div>
+</div>"""
+
+
+def characters_block(book):
+    chars = book.get("characters") or []
+    if not chars:
+        return ""
+    items = "".join(f'<li><b>{e(c["name"])}</b><span>{e(c.get("line", ""))}</span></li>' for c in chars)
+    return f'<div class="chars reveal"><p class="kicker">Meet the cast</p><ul>{items}</ul></div>'
+
+
+def remind_row(r=""):
+    w = wreck()
+    if w["status"] != "preorder":
+        return ""
+    dt = release_dt(w)
+    day, nxt = dt.strftime("%Y%m%d"), (dt.date() + timedelta(days=1)).strftime("%Y%m%d")
+    text = quote("Wreck by Ashley Claudy is out today")
+    details = quote("Wreck (Crowns & Chaos #2) releases today on Kindle. " + amazon(w["kindle_asin"]))
+    google = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={text}&dates={day}/{nxt}&details={details}"
+    return (f'<p class="remind"><span>Remind me:</span> '
+            f'<a href="{e(google)}" target="_blank" rel="noopener" data-track="calendar-google" data-book="wreck">Google Calendar</a>'
+            f'<a href="{r}wreck-release.ics" download data-track="calendar-ics" data-book="wreck">Apple &amp; Outlook</a></p>')
+
+
+def wreck_ics():
+    w = wreck()
+    dt = release_dt(w)
+    d1, d2 = dt.strftime("%Y%m%d"), (dt.date() + timedelta(days=1)).strftime("%Y%m%d")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    desc = f"Wreck (Crowns & Chaos #2) releases today on Kindle. {amazon(w['kindle_asin'])}".replace("\\", "\\\\").replace(",", "\\,").replace(";", "\;")
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Ashley Claudy//Wreck release//EN", "CALSCALE:GREGORIAN",
+             "BEGIN:VEVENT", "UID:wreck-release@ashleyclaudy.com", f"DTSTAMP:{stamp}",
+             f"DTSTART;VALUE=DATE:{d1}", f"DTEND;VALUE=DATE:{d2}", "SUMMARY:Wreck by Ashley Claudy is out today",
+             f"DESCRIPTION:{desc}", f"URL:{abs_url('books/wreck.html')}",
+             "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:Wreck is out today", "TRIGGER:PT9H", "END:VALARM",
+             "END:VEVENT", "END:VCALENDAR"]
+    def fold(line):
+        out = []
+        while len(line.encode()) > 75:
+            out.append(line[:75])
+            line = " " + line[75:]
+        out.append(line)
+        return "\r\n".join(out)
+
+    return "\r\n".join(fold(l) for l in lines) + "\r\n"
+
+
+def wall_section():
+    items = FAN.get("fan_wall") or []
+    if not items:
+        return ""
+    cards = ""
+    for i, it in enumerate(items):
+        who = e(it.get("name", "")) + (f" · {e(it['source'])}" if it.get("source") else "")
+        cards += (f'<figure class="wall-card reveal" style="--d:{round(i * 0.06, 2)}s"><blockquote>“{e(it["text"])}”</blockquote>'
+                  f'<figcaption>{who}</figcaption></figure>')
+    return f"""<section class="section" aria-labelledby="wall-title" style="padding-top:0">
+  <div class="wrap"><div class="sec-head reveal"><p class="kicker">Reader love</p><h2 class="h2" id="wall-title">What readers <span class="serif">say.</span></h2></div></div>
+  <div class="shelf wall" tabindex="0" aria-label="Reader comments">{cards}</div>
+</section>"""
+
+
+def quiz_band():
+    covers = "".join(
+        f'<img src="assets/covers/{e(BOOKS[s]["cover"])}" alt="" width="84" height="126" loading="lazy">'
+        for s in QUIZ["order"]
+    )
+    return f"""<section class="section" style="padding-block:0 clamp(72px,11vw,136px)">
+  <div class="wrap">
+    <a class="quizband reveal" href="quiz.html">
+      <div class="qb-copy">
+        <p class="kicker">Take the quiz</p>
+        <h2>Which kind of <span class="serif">trouble</span> are you?</h2>
+        <p>Six questions. One Ashley Claudy book to start with.</p>
+        <span class="btn btn-glow">Start the quiz {ARROW}</span>
+      </div>
+      <div class="qb-covers" aria-hidden="true">{covers}</div>
+    </a>
+  </div>
+</section>"""
 
 
 # ---------- pages ----------
@@ -469,6 +641,7 @@ def build_home():
         {out_link(amazon(w['kindle_asin']), f"Preorder Wreck {ARROW}", "kindle-preorder", "wreck", "btn btn-glow")}
         <a class="btn btn-line" href="#join">Get the cover reveal first</a>
       </div>
+      <div class="reveal">{remind_row()}</div>
     </div>
     <div class="wreck-cover reveal"><a data-tilt href="books/wreck.html"><img class="cover-art" src="assets/covers/wreck.jpg" alt="Wreck by Ashley Claudy, cover reveal coming soon" width="333" height="500" loading="lazy"></a></div>
   </div>
@@ -491,12 +664,13 @@ def build_home():
     <div class="about-copy reveal">
       {"".join(f"<p>{e(p)}</p>" for p in bio[1:])}
       {socials()}
+      <p class="fine">Made fan art, a reaction, or an edit? Tag @ashley.claudy on TikTok or email it to be featured here.</p>
       {contact}
     </div>
   </div>
 </section>"""
 
-    body = hero + trope_marquee() + shelf + preorder + join + about
+    body = hero + trope_marquee() + shelf + quiz_band() + feed_section() + preorder + wall_section() + join + about
     dock = {"label": short_cta(ride), "url": amazon(ride["kindle_asin"]), "store": "kindle-dock", "book": "ride", "sec": "#join"}
     return page("index.html", "Ashley Claudy · New Adult Romance Author", SITE["meta_description"], body,
                 image="og/home.jpg", jsonld=[person_ld()], dock=dock)
@@ -665,20 +839,25 @@ def build_book(book):
         {primary}
         {sample}
         <p class="fine" style="margin:0;text-align:center">{e(note_line)}</p>
+        {remind_row(r) if slug == "wreck" else ""}
       </div>
       <div class="getmore">{"".join(more)}</div>
     </div>
   </div>
 </section>
+{trailer_section(book, r)}
 <section class="section" style="padding-top:clamp(24px,5vw,56px)">
   <div class="wrap story">
     <div class="col">
+      {audio_block(book, r)}
       <div class="blurb reveal">{blurb}</div>
+      {characters_block(book)}
       {tags}
       {note}
     </div>
     <div class="col col-b reveal">
       {spec}
+      {playlist_block(book)}
       {quotes}
       {strip}
     </div>
@@ -719,6 +898,58 @@ def build_book(book):
     dock = {"label": short_cta(book), "url": amazon(book["kindle_asin"]), "store": "kindle-dock", "book": slug, "sec": "#join"}
     return page(f"books/{slug}.html", title, desc, body, image=f"og/{slug}.jpg", jsonld=[ld_book],
                 theme=book["accent"], dock=dock)
+
+
+def build_quiz():
+    panels = ""
+    for slug in QUIZ["order"]:
+        b = BOOKS[slug]
+        tags = "".join(f"<li>{e(t)}</li>" for t in b["tropes"][:4])
+        panels += f"""<article class="res t-{b['accent']}" data-result="{slug}" hidden>
+  <div class="res-grid">
+    <a class="res-cover" href="books/{slug}.html"><img class="cover-art" src="assets/covers/{e(b['cover'])}" alt="{e(b['title'])} by Ashley Claudy, cover" width="333" height="500"></a>
+    <div class="res-copy">
+      <p class="kicker">Your kind of trouble</p>
+      <h2 class="res-title">Start with <span class="serif">{e(b['title'])}.</span></h2>
+      <p class="lede">{e(b['hook'])}</p>
+      <ul class="tags">{tags}</ul>
+      <div class="cta-row">
+        {out_link(amazon(b['kindle_asin']), f"{e(kindle_label(b))} {ARROW}", "kindle-quiz", slug, "btn btn-glow")}
+        <a class="btn btn-line" href="books/{slug}.html">See the book</a>
+      </div>
+      <div class="res-actions"><button class="link" type="button" data-share="{slug}">Share my result</button><button class="link" type="button" data-retake>Retake the quiz</button></div>
+    </div>
+  </div>
+</article>"""
+    data = json.dumps({"order": QUIZ["order"], "questions": QUIZ["questions"]}, ensure_ascii=False).replace("</", "<\\/")
+    total = len(QUIZ["questions"])
+    body = f"""<section class="hero quiz t-blue">
+  {hero_bg("assets/covers/ride.jpg")}
+  <div class="wrap quiz-wrap">
+    <div class="quiz-view" data-view="intro">
+      <p class="kicker">The quiz</p>
+      <h1>Which kind of <span class="serif">trouble</span> are you?</h1>
+      <p class="lede">{e(QUIZ["intro"])}</p>
+      <button class="btn btn-glow" type="button" data-start>Start the quiz {ARROW}</button>
+      <p class="fine">Takes about a minute.</p>
+      <noscript><p class="lede">The quiz needs JavaScript. <a href="books.html">Browse all the books</a> instead.</p></noscript>
+    </div>
+    <div class="quiz-view" data-view="question" hidden>
+      <div class="quiz-top"><button class="back" type="button" data-back>← Back</button><span class="quiz-step" data-step>1 of {total}</span></div>
+      <div class="quiz-bar" aria-hidden="true"><i data-bar></i></div>
+      <h2 class="quiz-q" data-q tabindex="-1"></h2>
+      <div class="opts" data-opts></div>
+    </div>
+    <div class="quiz-view" data-view="result" hidden>
+      {panels}
+      <div class="quiz-join" id="join">{crew("quiz")}</div>
+    </div>
+  </div>
+</section>
+<script type="application/json" id="quiz-data">{data}</script>"""
+    return page("quiz.html", "Which Kind of Trouble Are You? Quiz · Ashley Claudy",
+                "Take the Ashley Claudy quiz: six quick questions to find your first book, from street racers and football players to fighters and family secrets.",
+                body, image="og/quiz.jpg", extra_js=("quiz.js",))
 
 
 def build_bonus():
@@ -802,6 +1033,7 @@ def build(out: Path):
         "books.html": build_books(),
         "bonus.html": build_bonus(),
         "links.html": build_links(),
+        "quiz.html": build_quiz(),
         "404.html": build_404(),
     }
     for book in CATALOG["books"]:
@@ -816,6 +1048,8 @@ def build(out: Path):
         f"<url><loc>{e(abs_url('' if p == 'index.html' else p))}</loc><lastmod>{today}</lastmod></url>"
         for p in pages if p != "404.html"
     )
+    if wreck()["status"] == "preorder":
+        (out / "wreck-release.ics").write_text(wreck_ics())
     (out / "sitemap.xml").write_text(
         f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>\n')
     (out / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {abs_url('sitemap.xml')}\n")

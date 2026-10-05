@@ -1,0 +1,17 @@
+{
+  "_help": "Paste real, public content here and rebuild. Empty lists keep that section off the site. Only add reader quotes and fan art you have permission to use.",
+
+  "social_posts": [],
+  "_social_posts_example": {
+    "platform": "tiktok",
+    "url": "https://www.tiktok.com/@ashley.claudy/video/1234567890123456789",
+    "caption": "Optional one-line caption"
+  },
+
+  "fan_wall": [],
+  "_fan_wall_example": {
+    "text": "A short reader quote or reaction.",
+    "name": "Reader first name or handle",
+    "source": "TikTok comment, Goodreads review, email"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "title": "Which kind of trouble are you?",
+  "intro": "Six quick questions. Tap the answer that sounds most like you, and we'll point you to the Ashley Claudy book to start with.",
+  "order": ["ride", "hustle", "outside-the-ropes", "it-goes-on"],
+  "questions": [
+    {
+      "q": "It's Friday night. Where are you?",
+      "options": [
+        {"text": "At an underground race, engines in my chest", "scores": {"ride": 3}},
+        {"text": "In the stands while the home team scores", "scores": {"hustle": 3}},
+        {"text": "In the gym after hours, wrapping my hands", "scores": {"outside-the-ropes": 3}},
+        {"text": "At a party where nobody is who they say they are", "scores": {"it-goes-on": 3}}
+      ]
+    },
+    {
+      "q": "Pick the red flag you'd ignore.",
+      "options": [
+        {"text": "He races for money", "scores": {"ride": 3}},
+        {"text": "Everyone on campus has an opinion about him", "scores": {"hustle": 3}},
+        {"text": "He fights for a living", "scores": {"outside-the-ropes": 3}},
+        {"text": "His family has more secrets than money", "scores": {"it-goes-on": 3}}
+      ]
+    },
+    {
+      "q": "Your love language is...",
+      "options": [
+        {"text": "Fierce loyalty, even when it costs me", "scores": {"ride": 2, "outside-the-ropes": 1}},
+        {"text": "Showing up at every single game", "scores": {"hustle": 2, "it-goes-on": 1}},
+        {"text": "Protecting you, even from yourself", "scores": {"outside-the-ropes": 2, "ride": 1}},
+        {"text": "A secret only we know", "scores": {"it-goes-on": 2, "hustle": 1}}
+      ]
+    },
+    {
+      "q": "Your dream setting?",
+      "options": [
+        {"text": "A small town where everyone knows the club", "scores": {"ride": 3}},
+        {"text": "A college campus in the fall", "scores": {"hustle": 3}},
+        {"text": "A boxing gym that smells like old leather", "scores": {"outside-the-ropes": 3}},
+        {"text": "A big house where nobody says what they mean", "scores": {"it-goes-on": 3}}
+      ]
+    },
+    {
+      "q": "How do you handle drama?",
+      "options": [
+        {"text": "I thrive on it", "scores": {"ride": 2, "it-goes-on": 1}},
+        {"text": "I rise above it", "scores": {"hustle": 3}},
+        {"text": "I fight back, literally if I have to", "scores": {"outside-the-ropes": 3}},
+        {"text": "I keep notes. I remember everything", "scores": {"it-goes-on": 2, "ride": 1}}
+      ]
+    },
+    {
+      "q": "Which trope is your weakness?",
+      "options": [
+        {"text": "Second chances with the one who got away", "scores": {"ride": 3}},
+        {"text": "A fresh start and a friend who's more", "scores": {"hustle": 3}},
+        {"text": "A love triangle with real danger", "scores": {"outside-the-ropes": 3}},
+        {"text": "A one-night stand that won't stay one night", "scores": {"it-goes-on": 3}}
+      ]
+    }
+  ]
+}

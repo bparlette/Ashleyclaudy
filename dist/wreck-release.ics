@@ -1,0 +1,20 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Ashley Claudy//Wreck release//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:wreck-release@ashleyclaudy.com
+DTSTAMP:20261005T180720Z
+DTSTART;VALUE=DATE:20261231
+DTEND;VALUE=DATE:20270101
+SUMMARY:Wreck by Ashley Claudy is out today
+DESCRIPTION:Wreck (Crowns & Chaos #2) releases today on Kindle. https://www
+ .amazon.com/dp/B0GNMZXQ2W?tag=ashlclau-20
+URL:https://ashleyclaudy.com/books/wreck.html
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Wreck is out today
+TRIGGER:PT9H
+END:VALARM
+END:VEVENT
+END:VCALENDAR

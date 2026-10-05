@@ -40,6 +40,7 @@ const jobs = [];
 const ride = data.books.find(b => b.slug === 'ride');
 jobs.push(['home', { accent: 'blue', kicker: 'Ashley Claudy · New Adult Romance', title: 'Some rides are worth the crash.'.replace(/\./, ''), sub: 'Ride, Crowns & Chaos #1. Free in Kindle Unlimited.', cta: 'Read free in Kindle Unlimited', covers: ['ride.jpg'] }]);
 jobs.push(['bonus', { accent: 'blue', kicker: 'The Crew · Free', title: 'Bonus chapters', sub: 'Plus the Wreck cover reveal, first.', cta: 'Join free at ashleyclaudy.com', covers: ['ride.jpg', 'hustle.jpg', 'outside-the-ropes.jpg'] }]);
+jobs.push(['quiz', { accent: 'blue', kicker: 'The quiz', title: 'Which kind of trouble are you?', sub: 'Six questions. One book to start with.', cta: 'Take the quiz at ashleyclaudy.com', covers: ['ride.jpg', 'hustle.jpg', 'outside-the-ropes.jpg'] }]);
 for (const b of data.books) {
   const kick = b.series === 'standalones' ? 'Standalone · Ashley Claudy' : `${seriesName[b.series]} · Book ${b.number}`;
   jobs.push([b.slug, { accent: b.accent, kicker: kick.toUpperCase(), title: b.title, sub: b.tagline, cta: b.status === 'preorder' ? 'Preorder on Kindle' : (b.kindle_unlimited ? 'Read free in Kindle Unlimited' : 'Buy on Kindle'), covers: [b.cover] }]);

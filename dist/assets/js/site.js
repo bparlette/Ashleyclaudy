@@ -208,6 +208,94 @@
     });
   }
 
+  /* ---------- click-to-load embeds (social posts, playlists): nothing third-party loads until tapped ---------- */
+  document.querySelectorAll(".post").forEach(function (post) {
+    var btn = post.querySelector(".post-play");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var f = document.createElement("iframe");
+      f.src = post.getAttribute("data-embed");
+      f.title = "Social post";
+      f.loading = "lazy";
+      f.setAttribute("allow", "autoplay; encrypted-media; fullscreen; clipboard-write");
+      f.setAttribute("allowfullscreen", "");
+      post.replaceChild(f, btn);
+      track("Social Post Played", {});
+    });
+  });
+
+  document.querySelectorAll(".playlist").forEach(function (box) {
+    var btn = box.querySelector("[data-playlist]");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var f = document.createElement("iframe");
+      f.src = box.getAttribute("data-embed");
+      f.title = "Playlist";
+      f.setAttribute("allow", "autoplay; clipboard-write; encrypted-media; fullscreen");
+      box.appendChild(f);
+      btn.hidden = true;
+      track("Playlist Played", {});
+    });
+  });
+
+  /* ---------- trailer video ---------- */
+  document.querySelectorAll("[data-trailer]").forEach(function (wrap) {
+    var v = wrap.querySelector("video");
+    var btn = wrap.querySelector(".trailer-btn");
+    if (!v || !btn) return;
+    btn.addEventListener("click", function () {
+      if (v.paused) {
+        v.muted = false;
+        v.play().then(function () { track("Trailer Play", { book: wrap.getAttribute("data-book") }); }).catch(function () {});
+      } else {
+        v.pause();
+      }
+    });
+    v.addEventListener("play", function () { wrap.classList.add("playing"); });
+    v.addEventListener("pause", function () { wrap.classList.remove("playing"); });
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (!en.isIntersecting && !v.paused) v.pause(); });
+      }, { threshold: 0.2 }).observe(wrap);
+    }
+  });
+
+  /* ---------- audio sample player ---------- */
+  function clock(sec) {
+    if (!isFinite(sec)) return "0:00";
+    var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return m + ":" + (s < 10 ? "0" + s : s);
+  }
+  var players = [];
+  document.querySelectorAll("[data-audio]").forEach(function (box) {
+    var a = box.querySelector("audio");
+    var btn = box.querySelector(".audio-btn");
+    var range = box.querySelector(".audio-range");
+    var time = box.querySelector(".audio-time");
+    if (!a || !btn) return;
+    var playIcon = btn.innerHTML;
+    var pauseIcon = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>';
+    players.push(a);
+    btn.addEventListener("click", function () {
+      if (a.paused) {
+        players.forEach(function (o) { if (o !== a) o.pause(); });
+        a.play().then(function () { track("Audio Sample Play", { book: box.getAttribute("data-book") }); }).catch(function () {});
+      } else {
+        a.pause();
+      }
+    });
+    a.addEventListener("play", function () { btn.innerHTML = pauseIcon; btn.setAttribute("aria-label", "Pause audio sample"); });
+    a.addEventListener("pause", function () { btn.innerHTML = playIcon; btn.setAttribute("aria-label", "Play audio sample"); });
+    a.addEventListener("loadedmetadata", function () { range.disabled = false; time.textContent = clock(a.duration); });
+    a.addEventListener("timeupdate", function () {
+      if (a.duration) range.value = String((a.currentTime / a.duration) * 100);
+      time.textContent = clock(a.currentTime);
+    });
+    a.addEventListener("ended", function () { range.value = "0"; time.textContent = clock(a.duration); });
+    range.addEventListener("input", function () { if (a.duration) a.currentTime = (parseFloat(range.value) / 100) * a.duration; });
+    a.load();
+  });
+
   /* ---------- outbound click tracking ---------- */
   document.addEventListener("click", function (e) {
     var link = e.target.closest("a[data-track]");
