@@ -345,6 +345,8 @@ def dock_html(dock):
 
 def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, solo=False, current="", theme="blue", dock=None, extra_js=(), noindex=False):
     r = "/" if path == "404.html" else "../" * path.count("/")
+    if len(description) > 160:
+        description = description[:157].rsplit(" ", 1)[0].rstrip(",;:.") + "…"
     canonical = abs_url("" if path == "index.html" else path)
     ld = "".join(
         '<script type="application/ld+json">' + json.dumps(obj, ensure_ascii=False).replace("</", "<\\/") + "</script>"
@@ -751,7 +753,7 @@ def best_reviews(items, n):
 def reviews_section(slugs=None, *, title='What readers <span class="serif">say.</span>', top_pad=True, exclude=(), limit=None, more_href=None):
     items = [r for r in REVIEWS if r["book"] in BOOKS and (not slugs or r["book"] in slugs) and r not in exclude]
     if limit:
-        items = best_reviews(items, limit)
+        items = sorted(best_reviews(items, limit), key=lambda r: -r["rating"])
     if slugs and len(items) < 2:
         return ""
     if not items:
@@ -1639,6 +1641,7 @@ def build_bonus():
   <div class="solo-in">
     <a class="logo" href="index.html">Ashley Claudy</a>
     <div class="fan" aria-hidden="true">{fan}</div>
+    <h1 class="sr-only">Free bonus chapters</h1>
     {crew("bonus")}
     <p class="fine"><a href="books.html">Browse the books</a> · <a href="index.html">Home</a></p>
   </div>
