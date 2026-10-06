@@ -50,9 +50,29 @@
 - [ ] Wreck real cover: replace `assets/covers/wreck.jpg` (same file name), update `blurb`/`tropes`/`hook` in `content/books.json`, regen share cards (`node tools/make-share-cards.js`), rebuild
 - [ ] Wreck release day (Dec 31, 2026): change Wreck's `"status"` from `"preorder"` to `"out"` in `books.json` (announcement bar, countdown, and preorder band disappear on their own)
 - [ ] Sharper covers: current files are 333x500; drop in ~1000x1500 versions with the same file names
-- [x] Reviews slider live with 19 verified Goodreads excerpts (`content/reviews.json`); ask the reviewers' permission when you can (short DM: "I'd love to quote your Goodreads review of X on my site, with a link back. OK?"), and remove anyone who says no
+- [x] Reviews: home slider shows the best 8, `reviews.html` has all 84 (Goodreads, StoryGraph, Amazon; `content/reviews.json`), book pages lead with three reader favorites; ask the reviewers' permission when you can (short DM: "I'd love to quote your Goodreads review of X on my site, with a link back. OK?"), and remove anyone who says no
 - [ ] Re-run `python3 tools/pull-reviews.py --check` monthly; add Amazon reviews by hand if wanted (Amazon blocks automated reading)
 - [ ] Author photo: square file at `assets/img/ashley.jpg`, then set `author_photo` in `site.json`
+
+## Sales plan (Oct 6 to Dec 31, 2026: 86 days to Wreck)
+- [ ] **Wreck preorder campaign.** Preorders all count on release day, which drives launch rank. Weekly beat: tropes reveal, first-line tease, cover reveal to the Crew, then everywhere 48 hours later, then a chapter 1 drop
+- [ ] **Get Ride read before Dec 31.** Wreck sells to people who finished Ride. Small Amazon ads on Ride targeting comp authors (dark New Adult, MC, racing romance); mention Ride in every Wreck post
+- [ ] **Backlist as bait.** Free or 99c promo on Outside the Ropes book 1 (Freebooksy, BargainBooksy, or a BookBub Featured Deal application), then push the box set. When it runs, fill `site.json` -> `promo` and rebuild
+- [ ] **Launch-day reviews.** Send Wreck ARCs to the ARC team by early December and ask for reviews on release day; Ride's 4.1 needs fresh voices
+- [ ] **Audio.** Pitch Ride and Wreck to Tantor / Podium now. Book pages link Audible, Spotify and Libby; the Spotify and Libby links are searches, so swap in direct links once found
+- [ ] **Hustle is the proven bestseller (9,500+ ratings).** Seasonal pushes (football season is now); point its back matter at Ride
+
+## Social plan
+- [ ] TikTok 3 to 5 times a week, reusing the trope-hook format that hit 722K ("POV: your brother's rival...") with on-screen quotes from Ride and Wreck. Run it as a books account: every post is about a book, a scene or a trope
+- [ ] Repost every TikTok to Instagram Reels and YouTube Shorts (then un-hide Instagram in `site.json`)
+- [ ] Reader group on Facebook or Discord for the Crew: polls, early looks, naming characters for Wreck (then fill `facebook_group` in `site.json`)
+- [ ] Send the creator kit plus ARCs to 20 to 30 mid-size BookTok accounts (dark and sports romance); repost their videos
+- [ ] TikTok link-in-bio -> the Wreck preorder plus bonus chapters until Dec 31 (use `?utm_source=tiktok`)
+
+## Next 30 days
+- [x] Preorder block fixed, review wall trimmed to the best 8 (all quotes on `reviews.html`)
+- [ ] Start the weekly Wreck content beat and the Ride ads
+- [ ] Schedule the Outside the Ropes promo and the ARC send
 
 ## Working rules for this repo
 - Multiple AIs edit this repo. Always check the latest commits before changing anything; **merge, never overwrite**.

@@ -62,11 +62,13 @@
   "proof": [
     {
       "figure": "1.6M",
-      "label": "likes on TikTok"
+      "label": "likes on TikTok",
+      "hero": true
     },
     {
       "figure": "13,000+",
-      "label": "reader ratings on Goodreads"
+      "label": "reader ratings on Goodreads",
+      "hero": true
     },
     {
       "figure": "9,500+",

@@ -119,6 +119,10 @@ def short_cta(book):
     return f"Read {book['title']} free" if book.get("kindle_unlimited") else f"Buy {book['title']}"
 
 
+def start_slug(series):
+    return series.get("start") or series["books"][0]
+
+
 def series_label(book):
     if book["series"] == "standalones":
         return "Standalone"
@@ -427,13 +431,16 @@ def trope_marquee():
     skip = {"Standalone", "Preorder", "Series finale"}
     seen, items = set(), []
     for b in CATALOG["books"]:
+        g = BOOK_GENRE.get(b["slug"])
         for t in b["tropes"]:
             if t in skip or t.startswith("Book ") or "#" in t or t in seen:
                 continue
             seen.add(t)
-            items.append(t)
-    group = "".join(f"<span>{e(t)}</span>" for t in items)
-    return f'<div class="marquee" aria-hidden="true"><div class="marquee-track">{group}{group}</div></div>'
+            items.append((t, f"{g['slug']}.html" if g else "books.html"))
+    live = "".join(f'<a href="{href}">{e(t)}</a>' for t, href in items)
+    dup = "".join(f'<a href="{href}" tabindex="-1">{e(t)}</a>' for t, href in items)
+    return (f'<nav class="marquee" aria-label="Browse by trope"><div class="marquee-track">'
+            f'<div class="mq">{live}</div><div class="mq" aria-hidden="true">{dup}</div></div></nav>')
 
 
 def shelf_card(book, r, label, line=None, badge="", delay=0):
@@ -450,13 +457,16 @@ def shelf_card(book, r, label, line=None, badge="", delay=0):
 
 
 def countdown(book, done_id):
-    return f"""<div class="board" data-countdown="{e(book['release_iso'])}" data-countdown-done="#{done_id}" role="timer" aria-label="Time until release">
-  <div class="board-cell"><span class="board-num" data-unit="d">{days_left(book)}</span><span class="board-unit">Days</span></div>
-  <div class="board-cell"><span class="board-num" data-unit="h">00</span><span class="board-unit">Hours</span></div>
-  <div class="board-cell"><span class="board-num" data-unit="m">00</span><span class="board-unit">Min</span></div>
-  <div class="board-cell"><span class="board-num" data-unit="s">00</span><span class="board-unit">Sec</span></div>
+    dt = release_dt(book)
+    left = max(0, int((dt - datetime.now(dt.tzinfo)).total_seconds()))
+    d, h, m, sec = left // 86400, left % 86400 // 3600, left % 3600 // 60, left % 60
+    return f"""<div class="board" data-countdown="{e(book['release_iso'])}" data-countdown-done="#{done_id}" data-done-text="Out now on Kindle." role="timer" aria-label="Time until release">
+  <div class="board-cell"><span class="board-num" data-unit="d">{d}</span><span class="board-unit">Days</span></div>
+  <div class="board-cell"><span class="board-num" data-unit="h">{h:02d}</span><span class="board-unit">Hours</span></div>
+  <div class="board-cell"><span class="board-num" data-unit="m">{m:02d}</span><span class="board-unit">Min</span></div>
+  <div class="board-cell"><span class="board-num" data-unit="s">{sec:02d}</span><span class="board-unit">Sec</span></div>
 </div>
-<p class="lede" id="{done_id}" hidden>Out now on Kindle.</p>"""
+<p class="lede" id="{done_id}" hidden></p>"""
 
 
 
@@ -722,8 +732,26 @@ def reader_favorites(slug, book):
 </section>"""
 
 
-def reviews_section(slugs=None, *, title='What readers <span class="serif">say.</span>', top_pad=True, exclude=()):
+def best_reviews(items, n):
+    """Top n quotes, one per book before any book repeats, strongest rating and a punchy length first."""
+    by_book = {}
+    for r in items:
+        by_book.setdefault(r["book"], []).append(r)
+    order = [slug for slug, _ in SHELF if slug in by_book] + [b for b in by_book if b not in dict(SHELF)]
+    for q in by_book.values():
+        q.sort(key=lambda r: (-r["rating"], abs(len(r["text"]) - 140)))
+    picked = []
+    while len(picked) < n and any(by_book.values()):
+        for slug in order:
+            if by_book[slug] and len(picked) < n:
+                picked.append(by_book[slug].pop(0))
+    return picked
+
+
+def reviews_section(slugs=None, *, title='What readers <span class="serif">say.</span>', top_pad=True, exclude=(), limit=None, more_href=None):
     items = [r for r in REVIEWS if r["book"] in BOOKS and (not slugs or r["book"] in slugs) and r not in exclude]
+    if limit:
+        items = best_reviews(items, limit)
     if slugs and len(items) < 2:
         return ""
     if not items:
@@ -749,6 +777,7 @@ def reviews_section(slugs=None, *, title='What readers <span class="serif">say.<
 </figure>"""
     email = SITE.get("contact_email", "")
     pad = "" if top_pad else ' style="padding-top:0"'
+    more = (f'<div class="wrap rv-more"><a class="btn btn-line" href="{more_href}">Read more reader reviews {ARROW}</a></div>' if more_href else "")
     return f"""<section class="section reviews" aria-labelledby="rv-title"{pad}>
   <div class="wrap"><div class="sec-head reveal">
     <p class="kicker">Readers say</p>
@@ -762,6 +791,7 @@ def reviews_section(slugs=None, *, title='What readers <span class="serif">say.<
       <button class="rv-btn" type="button" data-rv="next" aria-label="Next review">→</button>
     </div>
   </div>
+  {more}
   <div class="wrap"><p class="fine rv-note">Excerpts from public reader reviews on Goodreads, Amazon and StoryGraph, quoted as written, with each reviewer's display name. Want yours taken down? Email {e(email)}.</p></div>
 </section>"""
 
@@ -1164,12 +1194,10 @@ def build_home():
     elif fslug == "wreck":
         pill = '<a class="pill hero-pill" href="books/wreck.html"><span class="dot"></span><span>Wreck is out now</span></a>'
     status_word = "Preorder" if feat["status"] == "preorder" else "Out now"
-    proof_items = ""
-    if feat.get("proof"):
-        rating = rating_of(feat)
-        proof_items += f"<li>{stars_html(rating) if rating else STAR}<b>{e(feat['proof'])}</b></li>"
-    if feat.get("pages"):
-        proof_items += f"<li>{feat['pages']} pages</li>"
+    hero_proof = sorted((p for p in SITE["proof"] if p.get("hero")), key=lambda p: "ratings" not in p["label"])
+    proof_items = "".join(
+        f"<li>{STAR if 'ratings' in p['label'] else ''}<b>{e(p['figure'])}</b> {e(p['label'])}</li>" for p in hero_proof
+    )
     proof_row = f'<ul class="proof-row">{proof_items}</ul>' if proof_items else ""
     sample_btn = (out_link(kindle_sample(feat["kindle_asin"]), "Read the first chapters", "sample", fslug, "btn btn-line")
                   if feat["status"] == "out" else '<a class="btn btn-line" href="#join">Get the cover reveal first</a>')
@@ -1258,7 +1286,7 @@ def build_home():
   </div>
 </section>"""
 
-    body = hero + trope_marquee() + shelf + reviews_section() + quiz_band() + (feed_section() or follow_band()) + preorder + wall_section() + join + about
+    body = hero + trope_marquee() + shelf + reviews_section(limit=8, more_href="reviews.html") + quiz_band() + (feed_section() or follow_band()) + preorder + wall_section() + join + about
     dock = {"label": short_cta(feat), "url": amazon(feat["kindle_asin"]), "store": "kindle-dock", "book": fslug, "sec": "#join"}
     return page("index.html", "Ashley Claudy · New Adult Romance Author", SITE["meta_description"], body,
                 image="og/home.jpg", jsonld=[person_ld()], dock=dock)
@@ -1271,7 +1299,8 @@ def build_books():
         ordered = s["id"] != "standalones"
         cards = "".join(
             shelf_card(BOOKS[slug], r, f"Book {BOOKS[slug]['number']}" if ordered else "Standalone",
-                       badge="Preorder" if BOOKS[slug]["status"] == "preorder" else "", delay=round(i * 0.06, 2))
+                       badge="Preorder" if BOOKS[slug]["status"] == "preorder" else ("Start here" if slug == start_slug(s) else ""),
+                       delay=round(i * 0.06, 2))
             for i, slug in enumerate(s["books"])
         )
         box = ""
@@ -1296,6 +1325,7 @@ def build_books():
       <h2 id="{s['id']}-title">{e(s['name'])}</h2>
       <p>{e(s['pitch'])}</p>
       {series_link}
+      <p><a class="btn btn-glow btn-sm" href="books/{start_slug(s)}.html">Start here: {e(BOOKS[start_slug(s)]['title'])} {ARROW}</a></p>
     </div>
     <div class="grid-books">{cards}</div>
     {box}
@@ -1310,7 +1340,7 @@ def build_books():
         {out_link("https://www.amazon.com/kindle-dbs/hz/subscribe/ku", f"About Kindle Unlimited {ARROW}", "ku-info", "", "link")}</div>
       <div><h3>No Kindle?</h3><p>The free Kindle app works on any phone, tablet, or computer. Download it, buy or borrow the book, and it appears in the app.</p>
         {out_link("https://www.amazon.com/kindle-dbs/fd/kcp", f"Get the free Kindle app {ARROW}", "kindle-app", "", "link")}</div>
-      <div><h3>Print &amp; audio</h3><p>Paperbacks are sold at Amazon, Barnes &amp; Noble, and other bookstores, and your library can order them. Audiobooks are on Audible.</p></div>
+      <div><h3>Print &amp; audio</h3><p>Paperbacks are sold at Amazon, Barnes &amp; Noble, and other bookstores, and your library can order them. Audiobooks are on Audible, and many are also on Spotify or free through Libby with a library card.</p></div>
     </div>
   </div>
 </section>"""
@@ -1358,6 +1388,17 @@ def build_book(book):
     if book.get("audiobook"):
         ab = book["audiobook"]
         more.append(row(ab["url"], "Audiobook", f"Narrated by {ab['narrator']}", "audiobook"))
+        q = quote(f"{book['title']} Ashley Claudy")
+        more.append(row(f"https://open.spotify.com/search/{q}/audiobooks", "Audiobook", "Search on Spotify", "audiobook-spotify"))
+        more.append(row(f"https://www.overdrive.com/search?q={q}", "Borrow with Libby", "Free with a library card", "audiobook-libby"))
+    chips = []
+    if book["status"] == "out" and book.get("kindle_unlimited"):
+        chips.append('<span class="fmt fmt-on">Kindle Unlimited</span>')
+    if book.get("paperback"):
+        chips.append(f'<a class="fmt" href="{e(amazon(book["paperback"]["asin"]))}" target="_blank" rel="noopener"{asin_attr(amazon(book["paperback"]["asin"]))} data-track="paperback-amazon" data-book="{e(slug)}">Paperback</a>')
+    if book.get("audiobook"):
+        chips.append(f'<a class="fmt" href="{e(book["audiobook"]["url"])}" target="_blank" rel="noopener" data-track="audiobook" data-book="{e(slug)}">Audiobook</a>')
+    fmt_row = f'<p class="fmts" aria-label="Formats">{"".join(chips)}</p>' if len(chips) > 1 else ""
     more.append(row(book["goodreads"], "Add on Goodreads", "", "goodreads"))
 
     timer = ""
@@ -1398,7 +1439,8 @@ def build_book(book):
         thumbs = "".join(
             f'<a href="{other}.html"{CURRENT if other == slug else ""}>'
             f'<img src="{r}assets/covers/{e(BOOKS[other]["cover"])}" alt="" width="92" height="138" loading="lazy">'
-            f'Book {BOOKS[other]["number"]} · {e(BOOKS[other]["title"])}</a>'
+            f'Book {BOOKS[other]["number"]} · {e(BOOKS[other]["title"])}'
+            f'{"<em class=start-tag>Start here</em>" if other == start_slug(s) else ""}</a>'
             for other in s["books"]
         )
         strip = f'<div><p class="kicker" style="margin-bottom:14px">{e(s["name"])}</p><div class="strip">{thumbs}</div></div>'
@@ -1433,6 +1475,7 @@ def build_book(book):
         {primary}
         {sample}
         <p class="fine" style="margin:0;text-align:center">{e(note_line)}</p>
+        {fmt_row}
         {remind_row(r) if slug == "wreck" else ""}
       </div>
       <div class="getmore">{"".join(more)}</div>
@@ -1497,12 +1540,49 @@ def build_book(book):
                 theme=book["accent"], dock=dock)
 
 
+def build_reviews():
+    blocks = ""
+    for b in CATALOG["books"]:
+        slug = b["slug"]
+        items = [r for r in REVIEWS if r["book"] == slug]
+        if not items:
+            continue
+        cards = "".join(
+            f"""<figure class="qc t-{b['accent']}">
+  {'<span class="rv-badge">★ Highly rated</span>' if r['rating'] == 5 else stars_html(r['rating'])}
+  <blockquote>“{e(r['text'])}”</blockquote>
+  <figcaption><b>{e(r['name'])}</b> · {e(r['source'])} review{out_link(r['source_url'], "Read it", "review-source", slug, "rv-link")}</figcaption>
+</figure>""" for r in items)
+        blocks += f"""<section class="section t-{b['accent']}" style="padding-bottom:0" aria-labelledby="rv-{slug}">
+  <div class="wrap">
+    <div class="sec-head"><p class="kicker">{e(series_label(b))}</p><h2 class="h2" id="rv-{slug}">{e(b['title'])}</h2>
+      <p><a class="link" href="books/{slug}.html">See the book {ARROW}</a></p></div>
+    <div class="qc-grid">{cards}</div>
+  </div>
+</section>"""
+    email = SITE.get("contact_email", "")
+    body = f"""<section class="hero t-blue" style="overflow:clip">
+  {hero_bg("assets/covers/ride.jpg")}
+  <div class="wrap page-head">
+    <p class="kicker">Readers say</p>
+    <h1>Reader <span class="serif" style="color:var(--glow)">reviews.</span></h1>
+    <p class="lede">Real quotes from Goodreads, Amazon and StoryGraph, grouped by book.</p>
+  </div>
+</section>
+{blocks}
+<section class="section" style="padding-bottom:0"><div class="wrap"><p class="fine">Excerpts from public reader reviews, quoted as written, with each reviewer's display name. Want yours taken down? Email {e(email)}.</p></div></section>
+<section class="section" id="join" aria-label="Join the Crew"><div class="wrap reveal">{crew("reviews")}</div></section>"""
+    return page("reviews.html", "Reader Reviews · Ashley Claudy",
+                "What readers say about Ashley Claudy's books: quotes from Goodreads, Amazon and StoryGraph for every book.",
+                body, image="og/home.jpg")
+
+
 def build_quiz():
     panels = ""
     for slug in QUIZ["order"]:
         b = BOOKS[slug]
         tags = "".join(f"<li>{e(t)}</li>" for t in b["tropes"][:4])
-        panels += f"""<article class="res t-{b['accent']}" data-result="{slug}" hidden>
+        panels += f"""<article class="res t-{b['accent']}" data-result="{slug}" data-title="{e(b['title'])}" hidden>
   <div class="res-grid">
     <a class="res-cover" href="books/{slug}.html"><img class="cover-art" src="assets/covers/{e(b['cover'])}" alt="{e(b['title'])} by Ashley Claudy, cover" width="333" height="500"></a>
     <div class="res-copy">
@@ -1633,6 +1713,7 @@ def build(out: Path):
         "bonus.html": build_bonus(),
         "links.html": build_links(),
         "quiz.html": build_quiz(),
+        "reviews.html": build_reviews(),
         "creators.html": build_creators(),
         "arc.html": build_arc(),
         "privacy.html": build_privacy(),

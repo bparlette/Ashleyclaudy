@@ -90,6 +90,15 @@
       if (on) found = true;
     });
     if (!found) return false;
+    var title = root.querySelector('[data-result="' + slug + '"]').getAttribute("data-title");
+    var head = root.querySelector(".quiz-join .crew h2");
+    if (head && title) {
+      head.textContent = "Your match is " + title + ". ";
+      var em = document.createElement("span");
+      em.className = "serif";
+      em.textContent = "Get the bonus chapters free.";
+      head.appendChild(em);
+    }
     show("result");
     try { history.replaceState(null, "", "#" + slug); } catch (e) {}
     return true;

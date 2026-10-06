@@ -190,7 +190,10 @@
       var left = Math.max(0, target - Date.now());
       if (left === 0) {
         board.hidden = true;
-        if (out) out.hidden = false;
+        if (out) {
+          out.textContent = board.getAttribute("data-done-text") || "";
+          out.hidden = false;
+        }
         return false;
       }
       var s = Math.floor(left / 1000);

@@ -126,9 +126,10 @@ ul,ol{margin:0}
 /* ---------- marquee ---------- */
 .marquee{overflow:hidden;border-block:1px solid var(--line);background:var(--ink-2);padding:20px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
 .marquee-track{display:flex;width:max-content;animation:marq 60s linear infinite}
-.marquee span{display:flex;align-items:center;gap:36px;padding-right:36px;font:800 clamp(22px,5.2vw,40px)/1 var(--f-display);letter-spacing:-.02em;text-transform:uppercase;white-space:nowrap}
-.marquee span::after{content:"";width:9px;height:9px;transform:rotate(45deg);background:var(--glow);flex:none}
-.marquee span:nth-child(even){color:rgba(245,242,238,.3)}
+.mq{display:flex}
+.marquee a{display:flex;color:inherit;text-decoration:none;align-items:center;gap:36px;padding-right:36px;font:800 clamp(22px,5.2vw,40px)/1 var(--f-display);letter-spacing:-.02em;text-transform:uppercase;white-space:nowrap}
+.marquee a::after{content:"";width:9px;height:9px;transform:rotate(45deg);background:var(--glow);flex:none}
+.marquee a:nth-child(even){color:rgba(245,242,238,.3)}
 @keyframes marq{to{transform:translateX(-50%)}}
 
 /* ---------- sections ---------- */
@@ -600,3 +601,13 @@ button.link{background:none;border-top:0;border-inline:0;cursor:pointer;font-fam
 .qc blockquote{margin:0;flex:1;font:italic 400 clamp(24px,5.4vw,32px)/1.2 var(--f-serif);text-wrap:pretty}
 .qc figcaption{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;width:100%;font-size:14px;color:var(--muted)}
 .qc figcaption b{color:var(--paper);font-weight:650}
+
+/* ---------- trope links, formats row, start-here tags, reviews link ---------- */
+.marquee a:hover,.marquee a:focus-visible{color:var(--glow)}
+.marquee:hover .marquee-track,.marquee:focus-within .marquee-track{animation-play-state:paused}
+.fmts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0;padding:0}
+.fmt{display:inline-flex;align-items:center;padding:8px 14px;border-radius:99px;border:1px solid var(--line-2);background:rgba(255,255,255,.05);color:var(--paper);font:600 12px/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;text-decoration:none}
+a.fmt:hover{border-color:var(--glow);color:var(--glow)}
+.fmt-on{border-color:rgba(var(--glow-rgb),.55);background:rgba(var(--glow-rgb),.14);color:var(--glow)}
+.start-tag{display:block;margin-top:4px;font:700 10px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;font-style:normal;color:var(--glow)}
+.rv-more{display:flex;justify-content:center;margin-top:8px}
