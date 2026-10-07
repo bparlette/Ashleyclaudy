@@ -8,12 +8,12 @@
   "theme_color": "#09090b",
   "icons": [
     {
-      "src": "assets/icons/icon-192.png",
+      "src": "https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@a17fec51f95b93746f2dcbd0c04f497ab90db0e1/dist/assets/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "assets/icons/icon-512.png",
+      "src": "https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@a17fec51f95b93746f2dcbd0c04f497ab90db0e1/dist/assets/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
