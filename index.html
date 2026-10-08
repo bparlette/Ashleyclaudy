@@ -387,6 +387,9 @@
   }
   window.addEventListener('scroll', onScroll, {passive: true});
   window.addEventListener('resize', onScroll);
+  document.querySelectorAll('.rv-track').forEach(function(track){
+    track.addEventListener('scroll', onScroll, {passive: true});
+  });
   // Also listen to horizontal scroll tracks (TikTok carousel scrolls left/right)
   document.querySelectorAll('.rv-track').forEach(function(track){
     track.addEventListener('scroll', onScroll, {passive: true});
