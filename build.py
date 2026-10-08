@@ -464,6 +464,10 @@ def tiktok_autoplay_js():
   }
   window.addEventListener('scroll', onScroll, {passive: true});
   window.addEventListener('resize', onScroll);
+  // Also listen to horizontal scroll tracks (TikTok carousel scrolls left/right)
+  document.querySelectorAll('.rv-track').forEach(function(track){
+    track.addEventListener('scroll', onScroll, {passive: true});
+  });
   videos.forEach(function(o){
     o.post.addEventListener('click', function(){ o.el.pause(); if(current === o) current = null; });
   });
