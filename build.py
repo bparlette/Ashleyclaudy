@@ -472,6 +472,30 @@ def tiktok_autoplay_js():
 </script>"""
 
 
+def freshness_footer():
+    """Data freshness timestamps - like Off The Rip."""
+    return """<p class="fine" data-freshness style="text-align:center;margin-top:16px;font-size:.8rem;opacity:.7">
+      Social posts updated <span data-fresh-social>—</span> ·
+      Content updated <span data-fresh-content>—</span>
+    </p>
+    <script>
+    (function(){
+      var el = document.querySelector('[data-freshness]');
+      if(!el) return;
+      // fan.json has _updated timestamp
+      fetch('https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@main/content/fan.json')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var s = el.querySelector('[data-fresh-social]');
+          if(s && d._updated) s.textContent = d._updated;
+        }).catch(function(){});
+      // Use document last modified as content fallback
+      var cs = el.querySelector('[data-fresh-content]');
+      if(cs) cs.textContent = new Date(document.lastModified).toISOString().split('T')[0];
+    })();
+    </script>"""
+
+
 def person_ld():
     return {
         "@context": "https://schema.org",
