@@ -365,7 +365,7 @@
   var current = null;
   function pick(){
     var best = null, bestScore = -1;
-    var vh = window.innerHeight;
+    var vh = window.innerHeight, vw = window.innerWidth;
     videos.forEach(function(o){
       var r = o.post.getBoundingClientRect();
       var visible = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
