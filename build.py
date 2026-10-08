@@ -411,6 +411,67 @@ def page(path, title, description, body, *, image="og/home.jpg", jsonld=None, so
 """.replace("@@R@@", r)
 
 
+def tiktok_autoplay_js():
+    return """<script>
+(function(){
+  var PREVIEWS = {
+    '7005192493822135557': 'https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@main/dist/assets/social-previews/7005192493822135557.mp4',
+    '7138529978894814507': 'https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@main/dist/assets/social-previews/7138529978894814507.mp4',
+    '7147325034946678059': 'https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@main/dist/assets/social-previews/7147325034946678059.mp4',
+    '7174723011801730350': 'https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@main/dist/assets/social-previews/7174723011801730350.mp4',
+    '7213688557804817707': 'https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@main/dist/assets/social-previews/7213688557804817707.mp4',
+    '7238393464134749486': 'https://cdn.jsdelivr.net/gh/bparlette/Ashleyclaudy@main/dist/assets/social-previews/7238393464134749486.mp4'
+  };
+  var posts = document.querySelectorAll('.post[data-embed]');
+  var videos = [];
+  posts.forEach(function(post){
+    var embed = post.getAttribute('data-embed') || '';
+    var m = embed.match(/(\\d{10,})/);
+    if(!m || !PREVIEWS[m[1]]) return;
+    var v = document.createElement('video');
+    v.muted = true; v.loop = true; v.playsInline = true;
+    v.setAttribute('muted', ''); v.setAttribute('loop', '');
+    v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+    v.preload = 'none'; v.src = PREVIEWS[m[1]];
+    v.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s;';
+    var img = post.querySelector('.post-img');
+    if(img) img.parentNode.insertBefore(v, img.nextSibling);
+    v.addEventListener('canplay', function(){ v.style.opacity = '1'; }, {once: true});
+    videos.push({el: v, post: post});
+  });
+  if(!videos.length) return;
+  var current = null;
+  function pick(){
+    var best = null, bestScore = -1, vh = window.innerHeight;
+    videos.forEach(function(o){
+      var r = o.post.getBoundingClientRect();
+      var visible = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      var score = visible / Math.max(r.height, 1);
+      if(score > bestScore && score > 0.3){ bestScore = score; best = o; }
+    });
+    if(best !== current){
+      if(current) current.el.pause();
+      current = best;
+      if(current){
+        if(current.el.readyState < 2) current.el.load();
+        current.el.play().catch(function(){});
+      }
+    }
+  }
+  var ticking = false;
+  function onScroll(){
+    if(!ticking){ ticking = true; requestAnimationFrame(function(){ pick(); ticking = false; }); }
+  }
+  window.addEventListener('scroll', onScroll, {passive: true});
+  window.addEventListener('resize', onScroll);
+  videos.forEach(function(o){
+    o.post.addEventListener('click', function(){ o.el.pause(); if(current === o) current = null; });
+  });
+  pick();
+})();
+</script>"""
+
+
 def person_ld():
     return {
         "@context": "https://schema.org",
