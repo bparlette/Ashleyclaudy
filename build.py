@@ -442,11 +442,12 @@ def tiktok_autoplay_js():
   if(!videos.length) return;
   var current = null;
   function pick(){
-    var best = null, bestScore = -1, vh = window.innerHeight;
+    var best = null, bestScore = -1, vh = window.innerHeight, vw = window.innerWidth;
     videos.forEach(function(o){
       var r = o.post.getBoundingClientRect();
-      var visible = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
-      var score = visible / Math.max(r.height, 1);
+      var visH = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      var visW = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0));
+      var score = (visH * visW) / Math.max(r.height * r.width, 1);
       if(score > bestScore && score > 0.3){ bestScore = score; best = o; }
     });
     if(best !== current){
